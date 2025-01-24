@@ -40,5 +40,3 @@ jobs:
               -p 3000:3000 \
               --name grab-n-go \
               grab-n-go:latest
-
-              # Remove dangling images
