@@ -10,7 +10,7 @@ const Hero = () => {
     <section className="hero-section">
       <div className="container" data-aos="fade-up">
         <h1 className="title">
-          Fuel Your Day <div className="text-primary">Anywhere, Anytime</div>
+          Fuel Your Days <div className="text-primary">Anywhere, Anytime</div>
         </h1>
         <form>
           <div className="input-form">
