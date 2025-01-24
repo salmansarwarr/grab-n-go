@@ -1,0 +1,118 @@
+#support-us {
+  margin-bottom: 130px;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  @media (max-width: 1280px) {
+    margin-bottom: 100px;
+  }
+
+  @media (max-width: 768px) {
+    margin-bottom: 80px;
+  }
+
+  @media (max-width: 480px) {
+    margin-bottom: 60px;
+  }
+
+  .section-wrapper {
+    padding: 105px 100px;
+    max-width: 1340px;
+    background: url("/img/home/support-us/background.svg") var(--primary) center /
+      cover no-repeat;
+    mix-blend-mode: multiply;
+    border-radius: 60px;
+
+    @media (max-width: 1280px) {
+      padding: 80px 50px;
+      border-radius: 50px;
+    }
+
+    @media (max-width: 768px) {
+      padding: 60px 30px;
+      border-radius: 40px;
+      border-radius: 0px;
+    }
+
+    @media (max-width: 480px) {
+      padding: 30px 0px;
+    }
+  }
+
+  .title {
+    font-size: 65px;
+    font-weight: 500;
+    color: var(--white);
+    margin-bottom: 20px;
+
+    @media (max-width: 1280px) {
+      font-size: 55px;
+    }
+
+    @media (max-width: 768px) {
+      font-size: 45px;
+    }
+
+    @media (max-width: 480px) {
+      font-size: 36px;
+    }
+  }
+
+  .description {
+    font-size: 24px;
+    color: var(--white);
+    margin-bottom: 40px;
+    font-weight: 500;
+    line-height: 40px;
+
+    @media (max-width: 1280px) {
+      font-size: 20px;
+      line-height: 36px;
+    }
+
+    @media (max-width: 768px) {
+      font-size: 18px;
+      line-height: 30px;
+    }
+
+    @media (max-width: 480px) {
+      font-size: 16px;
+      line-height: 28px;
+    }
+  }
+
+  .btn {
+    padding: 21px 23px;
+    color: var(--primary);
+    font-size: 18px;
+    font-weight: 700;
+    background-color: var(--white);
+    border-radius: 10px;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background-color: var(--primary);
+      color: var(--white);
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    @media (max-width: 1280px) {
+      font-size: 16px;
+      padding: 18px 20px;
+    }
+
+    @media (max-width: 768px) {
+      font-size: 14px;
+      padding: 16px 18px;
+    }
+
+    @media (max-width: 480px) {
+      font-size: 12px;
+      padding: 14px 16px;
+    }
+  }
+}

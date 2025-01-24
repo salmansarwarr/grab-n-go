@@ -1,0 +1,221 @@
+#indiegogo {
+  .section-wrapper {
+    margin-bottom: 130px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 70px;
+    justify-content: center;
+    align-items: center;
+
+    // Medium screens (desktop but smaller)
+    @media (max-width: 1283px) {
+      margin-bottom: 100px;
+      grid-gap: 50px;
+    }
+
+    // Tablet layout: stack into one column, image at the top
+    @media (max-width: 992px) {
+      grid-template-columns: 1fr;
+      grid-gap: 40px;
+      text-align: center;
+
+      .image {
+        order: -1; // Move the image to the top
+      }
+
+      .contents {
+        order: 0;
+      }
+    }
+
+    // Mobile layout: stack content, reduce spacing
+    @media (max-width: 677px) {
+      grid-gap: 30px;
+      margin-bottom: 60px;
+    }
+  }
+
+  .title {
+    line-height: normal;
+    font-size: 56px;
+    color: var(--black);
+    font-weight: 500;
+    margin-bottom: 20px;
+
+    span {
+      color: var(--primary);
+    }
+
+    // Font size adjustments for various screens
+    @media (max-width: 1283px) {
+      font-size: 48px;
+    }
+
+    @media (max-width: 992px) {
+      font-size: 40px;
+      margin-bottom: 15px;
+    }
+
+    @media (max-width: 677px) {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+  }
+
+  .green-text {
+    color: var(--secondary);
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 20px;
+
+    // Adjust for smaller screens
+    @media (max-width: 992px) {
+      font-size: 20px;
+      margin-bottom: 15px;
+    }
+
+    @media (max-width: 677px) {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+  }
+
+  .description {
+    font-size: 18px;
+    color: var(--gray);
+    font-weight: 400;
+    line-height: 30px;
+    margin-bottom: 35px;
+
+    // Responsive adjustments
+    @media (max-width: 992px) {
+      font-size: 16px;
+      margin-bottom: 25px;
+    }
+
+    @media (max-width: 677px) {
+      font-size: 14px;
+      line-height: 24px;
+      margin-bottom: 20px;
+    }
+  }
+
+  .points {
+    .point-title {
+      font-size: 18px;
+      color: var(--gray);
+      font-weight: 400;
+      line-height: 30px;
+      margin-bottom: 35px;
+
+      @media (max-width: 992px) {
+        font-size: 16px;
+        margin-bottom: 25px;
+      }
+
+      @media (max-width: 677px) {
+        font-size: 14px;
+        line-height: 24px;
+        margin-bottom: 20px;
+      }
+    }
+
+    ul {
+      list-style: none; /* Remove default bullets */
+      padding: 0;
+      margin: 0;
+
+      @media (max-width: 992px) {
+        display: inline-block;
+        text-align: left;
+      }
+
+      @media (max-width: 677px) {
+        width: 100%;
+      }
+    }
+
+    li {
+      display: flex;
+      align-items: flex-start; /* Align items to the top */
+      margin-bottom: 15px;
+
+      @media (max-width: 992px) {
+        margin-bottom: 12px;
+      }
+
+      @media (max-width: 677px) {
+        margin-bottom: 10px;
+      }
+
+      .point-dot {
+        display: inline-block;
+        width: 9px;
+        height: 9px;
+        background-color: var(--primary);
+        border-radius: 50%;
+        margin-right: 15px;
+        flex-shrink: 0; /* Ensure dot doesn’t shrink */
+        margin-top: 12px; /* Align with the first line */
+
+        @media (max-width: 992px) {
+          width: 8px;
+          height: 8px;
+          margin-right: 12px;
+          margin-top: 9px;
+        }
+
+        @media (max-width: 677px) {
+          width: 7px;
+          height: 7px;
+          margin-right: 10px;
+          margin-top: 8px;
+        }
+      }
+
+      span {
+        font-size: 18px;
+        font-style: normal;
+        font-weight: 400;
+        line-height: 30px;
+        color: var(--gray);
+
+        @media (max-width: 992px) {
+          font-size: 16px;
+          line-height: 26px;
+        }
+
+        @media (max-width: 677px) {
+          font-size: 14px;
+          line-height: 24px;
+        }
+      }
+    }
+  }
+
+  .image {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    // Ensure image remains responsive
+    img {
+      @media (max-width: 992px) {
+        width: 80%;
+        height: auto;
+      }
+
+      @media (max-width: 677px) {
+        width: 100%;
+      }
+    }
+  }
+
+  @media (max-width: 1190px) {
+    margin-bottom: 100px 0;
+  }
+
+  @media (max-width: 776px) {
+    margin-bottom: 50px 0;
+  }
+}

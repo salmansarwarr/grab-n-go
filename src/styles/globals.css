@@ -1,0 +1,49 @@
+:root {
+  --primary: #ff8b00;
+  --secondary: #30dd00;
+  --black: #181818;
+  --white: #fff;
+  --gray: #666;
+}
+
+* {
+  font-family: var(--font-figtree) !important;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  scroll-behavior: smooth;
+}
+
+h1 {
+  font-family: var(--font-gt-walsheim) !important;
+}
+
+.container {
+  max-width: 1240px;
+  margin: 0 auto;
+}
+
+@media (max-width: 1283px) {
+  .container {
+    padding: 0 20px;
+  }
+}
+
+a {
+  text-decoration: none;
+}
+
+.img-fluid {
+  max-width: 100%;
+  height: auto;
+}
+
+li {
+  list-style: none;
+}
+@media (max-width: 768px) {
+  .only-desktop {
+    display: none;
+  }
+}
