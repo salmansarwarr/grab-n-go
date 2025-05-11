@@ -33,11 +33,11 @@ const DishModal = ({ dish, onClose }) => {
                         <div className="dish-modal-price-rating">
                             <span className="dish-modal-price">Price: $10.99</span>
                             <span className="dish-modal-rating">
-                                <img src="/img/menu/star.png" alt="star" />
-                                <img src="/img/menu/star.png" alt="star" />
-                                <img src="/img/menu/star.png" alt="star" />
-                                <img src="/img/menu/star.png" alt="star" />
-                                <img src="/img/menu/star.png" alt="star" />
+                                <img src="/img/menu/STAR.png" alt="star" />
+                                <img src="/img/menu/STAR.png" alt="star" />
+                                <img src="/img/menu/STAR.png" alt="star" />
+                                <img src="/img/menu/STAR.png" alt="star" />
+                                <img src="/img/menu/STAR.png" alt="star" />
                             </span>
                         </div>
                         <hr />
