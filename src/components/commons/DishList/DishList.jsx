@@ -1,8 +1,30 @@
-import Image from "next/image";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { GoArrowUpRight } from "react-icons/go";
+import DishCard from "./DishCard";
+import DishModal from "./DishModal";
 
 const DishList = ({ dishes, from }) => {
+	const [selectedDish, setSelectedDish] = useState(null);
+
+	useEffect(() => {
+		if (selectedDish) {
+			document.body.style.overflow = 'hidden';
+		} else {
+			document.body.style.overflow = '';
+		}
+		return () => {
+			document.body.style.overflow = '';
+		};
+	}, [selectedDish]);
+
+	const handleCardClick = (dish) => {
+		setSelectedDish(dish);
+	};
+
+	const handleClose = () => {
+		setSelectedDish(null);
+	};
+
 	return (
 		<section id="dishes">
 			<div className="container" data-aos="fade-up">
@@ -18,29 +40,20 @@ const DishList = ({ dishes, from }) => {
 				)}
 				<div className="dishes" data-aos="fade-up">
 					{dishes.map((dish) => (
-						<div key={dish.id} className="dish">
-							<Image
-								className="img-fluid"
-								width={285}
-								height={225}
-								src={dish.image}
-								alt="dish1"
-							/>
-							<div className="btn-group">
-								<h3>{dish.title}</h3>
-								<Link className="arrow" href="#">
-									<GoArrowUpRight />
-								</Link>
-							</div>
-						</div>
+						<DishCard key={dish.id} dish={dish} onClick={() => handleCardClick(dish)} />
 					))}
 				</div>
 				<div className="button">
-					<Link className="view-more" href="#">
+					<Link className="view-more" href="/menu">
 						View More
 					</Link>
 				</div>
+
 			</div>
+			{selectedDish && (
+				<DishModal dish={selectedDish} onClose={handleClose} />
+			)}
+
 		</section>
 	);
 };
