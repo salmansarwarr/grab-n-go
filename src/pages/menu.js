@@ -11,46 +11,39 @@ import NearestMeal from "@/components/home/NearestMeal/NearestMeal";
 import SupportUs from "@/components/home/SupportUs/SupportUs";
 import WhySupportUs from "@/components/home/WhySupportUs/WhySupportUs";
 import Dishes from "@/components/home/dishes/Dishes";
+import Menu from "@/components/menu/Menu";
 import AOS from "aos";
 import "aos/dist/aos.css";
 import dynamic from "next/dynamic";
 import Head from "next/head";
 import { useEffect } from "react";
 const Hero = dynamic(() => import("@/components/home/Hero/Hero"), {
-  ssr: false,
+    ssr: false,
 });
 export default function Home() {
-  useEffect(() => {
-    AOS.init({
-      easing: "ease-out-cubic",
-      // once: true,
-      offset: 0,
-      duration: 1200,
-      delay: 100,
-    });
-  }, []);
-  return (
-    <>
-      <Head>
-        <title>Grab N Go Express</title>
-        <meta name="description" content="Grab N Go Express" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.png" />
-      </Head>
-      <Navbar />
-      <Hero />
-      <Dishes />
-      <IndieGoGo />
-      <Benifits />
-      <WhySupportUs />
-      <NearestMeal />
-      <SupportUs />
-      <FAQ />
-      <ContactUs />
-      <Footer />
-      <ScrollToTop/>
-    </>
-  );
+    useEffect(() => {
+        AOS.init({
+            easing: "ease-out-cubic",
+            // once: true,
+            offset: 0,
+            duration: 1200,
+            delay: 100,
+        });
+    }, []);
+    return (
+        <>
+            <Head>
+                <title>Menu</title>
+                <meta name="description" content="Grab N Go Express" />
+                <meta name="viewport" content="width=device-width, initial-scale=1" />
+                <link rel="icon" href="/favicon.png" />
+            </Head>
+            <Navbar />
+            <Menu />
+            <Footer />
+            <ScrollToTop />
+        </>
+    );
 }
 
 //      <Categories />

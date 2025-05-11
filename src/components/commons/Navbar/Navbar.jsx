@@ -85,6 +85,12 @@ const Navbar = () => {
             <Link href="/about-us">About Us</Link>
           </li>
           <li>
+            <Link href="/menu">Menu</Link>
+          </li>
+          <li>
+            <Link href="/addtocart">Cart</Link>
+          </li>
+          <li>
             <Link href="#faq">FAQ</Link>
           </li>
           <li>
