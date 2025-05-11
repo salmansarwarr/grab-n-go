@@ -87,9 +87,9 @@ const Navbar = () => {
           <li>
             <Link href="/menu">Menu</Link>
           </li>
-          <li>
+          {/* <li>
             <Link href="/addtocart">Cart</Link>
-          </li>
+          </li> */}
           <li>
             <Link href="#faq">FAQ</Link>
           </li>
