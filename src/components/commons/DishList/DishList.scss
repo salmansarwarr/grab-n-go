@@ -230,6 +230,13 @@
   font-family: var(--font-gt-walsheim);
 }
 
+.dish-modal{
+  width: 1240px;
+  @media (max-width: 1280px) {
+    width: 100%;
+  }
+}
+
 .dish-modal-inner {
   width: 1240px;
   min-height: 700px;

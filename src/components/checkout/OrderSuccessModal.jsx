@@ -153,7 +153,7 @@ const OrderSuccessModal = ({ open, onClose, order }) => {
             justify-content: center;
           }
 
-          @media (max-width: 600px) {
+          @media (max-width: 800px) {
             .order-success-backdrop {
               padding: 2vw;
             }
