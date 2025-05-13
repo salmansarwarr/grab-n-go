@@ -63,12 +63,14 @@ const OrderSuccessModal = ({ open, onClose, order }) => {
             display: flex; align-items: center; justify-content: center;
             z-index: 3000;
             padding: 2rem;
+            overflow-y: auto;
           }
           .order-success-modal {
             background: #fff;
             border: 1px solid #FF8B0080;
             border-radius: 28px;
-            padding: 2.5rem 2.5rem 2rem 2.5rem;
+            padding: 63px 95px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.18);
             min-width: 740px;
             max-width: 740px;
             text-align: center;
@@ -77,27 +79,25 @@ const OrderSuccessModal = ({ open, onClose, order }) => {
           .order-success-title {
             font-size: 28px;
             font-weight: 500;
-            margin-bottom: 0.5rem;
+            margin-bottom: 16px;
             color: #6C7275;
           }
           .order-success-placed {
             font-size: 40px;
             font-weight: 500;
-            margin-bottom: 0.5rem;
+            margin-bottom: 16px;
             color: #23262F;
           }
           .order-success-desc {
             color: #141718;
             font-size: 14px;
             font-family: var(--font-gt-figtree);
-            margin-bottom: 1.5rem;
           }
           .order-success-items {
             display: flex;
             justify-content: center;
             gap: 2.2rem;
-            margin-bottom: 1.7rem;
-            padding: 20px 0px;
+            padding: 40px 0px;
           }
           .order-success-item {
             position: relative;
@@ -126,9 +126,8 @@ const OrderSuccessModal = ({ open, onClose, order }) => {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-top: 1.2rem;
             gap: 2.5rem;
-            max-width: 480px;
+            max-width: 520px;
             margin: 0 auto;
           }
           .order-success-info {
@@ -152,6 +151,52 @@ const OrderSuccessModal = ({ open, onClose, order }) => {
             display: flex;
             align-items: center;
             justify-content: center;
+          }
+
+          @media (max-width: 600px) {
+            .order-success-backdrop {
+              padding: 2vw;
+            }
+            .order-success-modal {
+              min-width: 0;
+              max-width: 95vw;
+              width: 100%;
+              border-radius: 12px;
+              padding: 18px 2vw;
+            }
+            .order-success-title {
+              font-size: 22px;
+              margin-bottom: 8px;
+            }
+            .order-success-placed {
+              font-size: 35px;
+              margin-bottom: 8px;
+            }
+            .order-success-desc {
+              font-size: 14px;
+            }
+           
+            .order-success-details {
+              flex-direction: column;
+              align-items: center;
+              gap: 0.7rem;
+              margin: 0 auto;
+            }
+            .order-success-info {
+              text-align: center;
+              width: 100%;
+            }
+            .order-success-info div {
+              padding: 6px 0;
+            }
+            .order-success-info span {
+              font-size: 12px;
+              min-width: 70px;
+              margin-right: 4px;
+            }
+            .order-success-qr {
+              margin-top: 10px;
+            }
           }
         `}</style>
             </div>

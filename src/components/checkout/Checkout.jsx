@@ -176,7 +176,7 @@ export default function Checkout() {
                     .checkout-page {
                     display: flex;
                     gap: 2.5rem;
-                    padding: 5rem 2rem;
+                    padding: 5rem 0rem;
                     }
                     .checkout-form {
                     flex: 2;
@@ -188,6 +188,8 @@ export default function Checkout() {
                     border-radius: 16px;
                     border: 1px solid #18181866;
                     padding:44px 26px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+
                     }
                     .checkout-section h3 {
                     font-size: 22px;
@@ -222,7 +224,9 @@ export default function Checkout() {
                     display: flex;
                     flex-direction: column;
                     gap: 0.7rem;
-                    margin-bottom: 1.2rem;
+                    border-bottom: 1px solid #666666;
+                    padding-bottom: 26px;
+                    margin-bottom: 26px;
                     }
                     .payment-methods label {
                     display: flex;
@@ -271,6 +275,8 @@ export default function Checkout() {
                     border: 1px solid #18181866;
                     height: fit-content;
                     min-width: 480px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+
                     }
                     .order-summary h3 {
                     font-size: 31px;
@@ -283,17 +289,15 @@ export default function Checkout() {
                     justify-content: space-between;
                     font-size: 1.08rem;
                     margin-bottom: 0.7rem;
+                    border-bottom: 1px solid #E8ECEF;
+                    padding-bottom: 1.5rem;
                     }
                     .summary-row.subtotal {
                     font-weight: 400;
                     font-family: figtree;
                     font-size: 18px;
                     color: #181818;
-                    margin-top: 1.2rem;
-                    border-bottom: 1px solid #E8ECEF;
-                    border-top: 1px solid #E8ECEF;
-                    padding-bottom: 1.2rem;
-                    padding-top: 1.5rem;
+                    margin-top: 30px;
                     }
                     .summary-row.subtotal span:nth-child(2) {
                     font-weight: 600;
@@ -303,6 +307,7 @@ export default function Checkout() {
                     font-size: 22px;
                     font-family: figtree;
                     margin-top: 1.2rem;
+                    border-bottom: none;
                     }
                     .summary-product {
                     display: flex;
@@ -311,8 +316,9 @@ export default function Checkout() {
                     margin: 16px 0;
                     }
                     .summary-product-image {
-                    width: 70px;
-                    height: 70px;
+                    width: 100px;
+
+                    height: 128px;
                     }
                     .summary-product-image img {
                     width: 100%;
@@ -323,13 +329,13 @@ export default function Checkout() {
                     .summary-title {
                     font-weight: 500;
                     font-size: 16px;
-                    margin-bottom: 6px;   
+                    margin-bottom: 8px;   
                     }
                     .summary-type {
                     color: #666666;
                     font-size: 14px;
                     font-weight: 400;
-                    margin-bottom: 6px;
+                    margin-bottom: 8px;
                     }
                     .summary-remove {
                     background: none;

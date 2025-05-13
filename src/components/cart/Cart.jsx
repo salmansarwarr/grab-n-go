@@ -2,116 +2,131 @@ import Link from "next/link";
 import React, { useState } from "react";
 
 const initialCart = [
-    {
-        id: 1,
-        title: "Chicken Fried Rice",
-        type: "Non-veg",
-        image: "/img/menu/menu-image1.png",
-        price: 19.0,
-        quantity: 2,
-    },
-    {
-        id: 2,
-        title: "Baked Sweet Potato",
-        type: "veg",
-        image: "/img/menu/menu-image2.png",
-        price: 19.0,
-        quantity: 3,
-    },
-    {
-        id: 3,
-        title: "Jollof Spaghetti",
-        type: "veg",
-        image: "/img/menu/menu-image3.png",
-        price: 19.0,
-        quantity: 1,
-    },
+  {
+    id: 1,
+    title: "Chicken Fried Rice",
+    type: "Non-veg",
+    image: "/img/menu/menu-image1.png",
+    price: 19.0,
+    quantity: 2,
+  },
+  {
+    id: 2,
+    title: "Baked Sweet Potato",
+    type: "veg",
+    image: "/img/menu/menu-image2.png",
+    price: 19.0,
+    quantity: 3,
+  },
+  {
+    id: 3,
+    title: "Jollof Spaghetti",
+    type: "veg",
+    image: "/img/menu/menu-image3.png",
+    price: 19.0,
+    quantity: 1,
+  },
 ];
 
 const Cart = () => {
-    const [cart, setCart] = useState(initialCart);
+  const [cart, setCart] = useState(initialCart);
 
-    const handleQuantity = (id, delta) => {
-        setCart(cart => cart.map(item =>
-            item.id === id ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item
-        ));
-    };
+  const handleQuantity = (id, delta) => {
+    setCart(cart => cart.map(item =>
+      item.id === id ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item
+    ));
+  };
 
-    const handleRemove = (id) => {
-        setCart(cart => cart.filter(item => item.id !== id));
-    };
+  const handleRemove = (id) => {
+    setCart(cart => cart.filter(item => item.id !== id));
+  };
 
-    const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const total = subtotal; // Example: add a fixed fee for demo
+  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const total = subtotal; // Example: add a fixed fee for demo
 
-    return (
-        <div className="container addtocart-page">
-            <div className="cart-list">
-                <div className="cart-header">
-                    <span>Product</span>
-                    <span>Quantity</span>
-                    <span>Price</span>
-                    <span>Subtotal</span>
-                </div>
-                {cart.map(item => (
-                    <div className="cart-row" key={item.id}>
-                        <div className="cart-product">
-                            <div className="cart-product-image">
-                                <img src={item.image} alt={item.title} />
-                            </div>
-                            <div>
-                                <div className="cart-title">{item.title}</div>
-                                <div className="cart-type">{item.type}</div>
-                                <button className="cart-remove" onClick={() => handleRemove(item.id)}>✕ Remove</button>
-                            </div>
-                        </div>
-                        <div className="cart-qty">
-                            <button onClick={() => handleQuantity(item.id, -1)}>-</button>
-                            <span>{item.quantity}</span>
-                            <button onClick={() => handleQuantity(item.id, 1)}>+</button>
-                        </div>
-                        <div className="cart-price">${item.price.toFixed(2)}</div>
-                        <div className="cart-subtotal">${(item.price * item.quantity).toFixed(2)}</div>
-                    </div>
-                ))}
+  return (
+    <div className="container addtocart-page">
+      <div className="cart-list">
+        <div className="cart-header">
+          <span>Product</span>
+          <span>Quantity</span>
+          <span>Price</span>
+          <span>Subtotal</span>
+        </div>
+        {cart.map(item => (
+          <div className="cart-row" key={item.id}>
+            <div className="cart-product">
+              <div className="cart-product-image">
+                <img src={item.image} alt={item.title} />
+              </div>
+              <div className="cart-product-details">
+                <div className="cart-title">{item.title}</div>
+                <div className="cart-type">{item.type}</div>
+                <button className="cart-remove" onClick={() => handleRemove(item.id)}>✕ Remove</button>
+              </div>
             </div>
-            <div className="cart-summary">
-                <h3>Cart summary</h3>
-                <div className="cart-summary-select">
-                    <p>Pickup</p>
-                </div>
-                <div className="summary-row">
-                    <span>Subtotal</span>
-                    <span>${subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                </div>
-                <div className="summary-row total">
-                    <span>Total</span>
-                    <span>${total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                </div>
-                <Link href="/checkout">
-                    <button className="checkout-btn">Checkout</button>
-                </Link>
+            {/* Desktop grid columns */}
+            <div className="cart-qty desktop-only">
+              <button onClick={() => handleQuantity(item.id, -1)}>-</button>
+              <span>{item.quantity}</span>
+              <button onClick={() => handleQuantity(item.id, 1)}>+</button>
             </div>
-            <style jsx>{`
+            <div className="cart-price desktop-only">${item.price.toFixed(2)}</div>
+            <div className="cart-subtotal desktop-only">${(item.price * item.quantity).toFixed(2)}</div>
+            {/* Tablet/mobile row grouping */}
+            <div className="cart-info-row mobile-only">
+              <div className="cart-qty">
+                <button onClick={() => handleQuantity(item.id, -1)}>-</button>
+                <span>{item.quantity}</span>
+                <button onClick={() => handleQuantity(item.id, 1)}>+</button>
+              </div>
+              <div className="cart-price">${item.price.toFixed(2)}</div>
+              <div className="cart-subtotal">${(item.price * item.quantity).toFixed(2)}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="cart-summary">
+        <h3>Cart summary</h3>
+        <div className="cart-summary-select">
+          <p>Pickup</p>
+        </div>
+        <div className="summary-row">
+          <span>Subtotal</span>
+          <span><b> ${subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</b></span>
+        </div>
+        <div className="summary-row total">
+          <span>Total</span>
+          <span>${total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+        </div>
+        <Link href="/checkout">
+          <button className="checkout-btn">Checkout</button>
+        </Link>
+      </div>
+      <style jsx>{`
       .addtocart-page {
+        width: 1240px;
         display: flex;
         gap: 2.5rem;
-        padding: 5rem 2rem;
-        // min-height: 100vh;
+        padding: 5rem 0rem;
       }
+
       .cart-list {
         flex: 2;
       }
+
       .cart-header {
         display: grid;
         grid-template-columns: 2.5fr 1.2fr 1fr 1fr;
         font-weight: 500;
         font-size: 18px;
+        line-height: 28px;
         color: #181818;
         border-bottom: 2px solid #eee;
-        padding-bottom: 0.7rem;
-        margin-bottom: 1.2rem;
+        padding-bottom: 26px;
+        margin-bottom: 26px;
       }
+
       .cart-row {
         display: grid;
         grid-template-columns: 2.5fr 1.2fr 1fr 1fr;
@@ -119,40 +134,52 @@ const Cart = () => {
         border-bottom: 1px solid #E8ECEF;
         padding: 1.1rem 0;
       }
+
       .cart-product {
         display: flex;
         align-items: center;
         gap: 1.2rem;
       }
+
       .cart-product-image {
-        width: 70px;
-        height: 70px;
+        width: 104px;
+        height: 133px;
         border-radius: 16px;
       }
+
       .cart-product-image img {
         width: 100%;
         height: 100%;
         object-fit: contain;
       }
+
+      .cart-product-details {
+        padding: 20px;
+      }
+
       .cart-title {
         font-weight: 500;
-        margin-bottom: 0.4rem;
+        margin-bottom: 8px;
+        line-height: 24px;
         font-size: 18px;
       }
+
       .cart-type {
         color: #666666;
         font-size: 14px;
-        margin-bottom: 0.3rem;
+        margin-bottom: 8px;
       }
+
       .cart-remove {
         background: none;
         border: none;
         color: #666666;
         font-size: 16px;
         cursor: pointer;
-        margin-top: 0.2rem;
         padding: 0;
+        text-align: left;
       }
+
       .cart-qty {
         display: flex;
         align-items: center;
@@ -161,10 +188,12 @@ const Cart = () => {
         border: 1px solid #666666;
         border-radius: 6px;
         padding: 0.3rem 0.8rem;
-        width: fit-content ;
+        width: fit-content;
         font-size: 14px;
         font-weight: 600;
+        flex-direction: row;
       }
+
       .cart-qty button {
         font-size: 1.2rem;
         cursor: pointer;
@@ -174,83 +203,264 @@ const Cart = () => {
         align-items: center;
         justify-content: center;
       }
+
       .cart-price {
         font-size: 20px;
         color: #181818;
         font-weight: 400;
       }
-    .cart-subtotal {
+
+      .cart-subtotal {
         font-size: 20px;
         color: #181818;
         font-weight: 600;
       }
+
       .cart-summary {
-        flex: 1;
+        width: 460px;
         background: #fff;
         border: 1px solid #18181866;
         border-radius: 16px;
-        padding: 2rem 2rem 1.5rem 2rem;
+        padding: 26px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.18);
         height: fit-content;
-        min-width: 460px;
       }
+
       .cart-summary h3 {
         font-size: 22px;
         font-weight: 500;
-        margin-bottom: 1.2rem;
+        margin-bottom: 17px;
       }
+
       .cart-summary .cart-summary-select p {
         width: 100%;
         background: #30DD001A;
         border: 1.5px solid #30DD0066;
         border-radius: 7px;
-        padding: 0.7rem 1rem;
-        font-size: 16px;
+        padding: 14px;
+        font-family: var(--font-gt-figtree);
+        font-size: 17px;
         font-weight: 400;
-        margin-bottom: 1.2rem;
+        line-height: 28px;
+        margin-bottom: 17px;
       }
+
       .summary-row {
         display: flex;
         justify-content: space-between;
         font-size: 18px;
         font-weight: 400;
-        margin-bottom: 0.7rem;
+        padding: 14px 0;
       }
+
       .summary-row.total {
         font-weight: 600;
         font-size: 22px;
-        margin-top: 1.2rem;
+        line-height: 35px;
+        margin-top: 17px;
+        border-top: 1px solid #E8ECEF;
+        padding-top: 25px;
+        padding-bottom: 7px;
       }
+
       .checkout-btn {
         width: 100%;
         background: #30DD00;
         color: #fff;
         border: none;
         border-radius: 8px;
-        padding: 0.9rem 0;
+        padding: 20px 0;
         font-size: 1.1rem;
         font-weight: 600;
-        margin-top: 1.5rem;
+        margin-top: 52px;
         cursor: pointer;
         transition: background 0.2s;
-        margin-top: 4rem;
       }
+
       .checkout-btn:hover {
         background: #13b013;
       }
-      @media (max-width: 900px) {
+
+      .desktop-only { display: flex; }
+      .mobile-only { display: none; }
+
+      @media (max-width: 1280px) {
         .addtocart-page {
-          flex-direction: column;
-          gap: 1.5rem;
+          width: 100%;
           padding: 4rem 2rem;
         }
+
+        .cart-header {
+          font-size: 16px;
+          padding-bottom: 20px;
+          margin-bottom: 20px;
+        }
+
+        .cart-product-image {
+          width: 90px;
+          height: 115px;
+        }
+
+        .cart-title {
+          font-size: 16px;
+        }
+
+        .cart-price, .cart-subtotal {
+          font-size: 18px;
+        }
+
         .cart-summary {
-          min-width: unset;
-          width: 100%;
+          width: 400px;
         }
       }
-    `}</style>
-        </div>
-    )
+
+      @media (max-width: 992px) {
+        .addtocart-page {
+          flex-direction: column;
+          gap: 2rem;
+          padding: 3rem 1.5rem;
+        }
+
+        .cart-summary {
+          width: 100%;
+        }
+
+        .cart-header {
+          display: none;
+        }
+
+        .cart-row {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+          padding: 1.5rem 0;
+          border-bottom: 1px solid #E8ECEF;
+        }
+
+        .cart-product {
+          display: flex;
+          flex-direction: row;
+          align-items: flex-start;
+          gap: 1rem;
+        }
+
+        .cart-product-image {
+          width: 90px;
+          height: 115px;
+        }
+
+        .cart-product-details {
+          padding: 0;
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+        }
+
+        .cart-title {
+          font-size: 16px;
+        }
+
+        .cart-info-row {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 1.5rem;
+          margin-top: 1rem;
+        }
+
+        .cart-qty {
+          flex-direction: row;
+        }
+
+        .cart-price, .cart-subtotal {
+          text-align: left;
+          font-size: 16px;
+        }
+
+        .cart-summary h3 {
+          font-size: 20px;
+        }
+
+        .summary-row {
+          font-size: 16px;
+        }
+
+        .summary-row.total {
+          font-size: 20px;
+        }
+
+        .checkout-btn {
+          margin-top: 35px;
+          padding: 15px 0;
+          font-size: 1rem;
+        }
+
+        .desktop-only { display: none !important; }
+        .mobile-only { display: flex !important; }
+      }
+
+      @media (max-width: 576px) {
+        .addtocart-page {
+          padding: 2rem 1rem;
+        }
+
+        
+
+        .cart-product-image {
+          width: 80px;
+          height: 100px;
+        }
+
+        .cart-title {
+          font-size: 15px;
+        }
+
+        .cart-type {
+          font-size: 13px;
+        }
+
+        .cart-remove {
+          font-size: 14px;
+        }
+
+        .cart-qty {
+          padding: 0.2rem 0.6rem;
+          font-size: 13px;
+        }
+
+        .cart-summary {
+          padding: 20px;
+        }
+
+        .cart-summary h3 {
+          font-size: 18px;
+        }
+
+        .cart-summary .cart-summary-select p {
+          font-size: 15px;
+          padding: 12px;
+        }
+
+        .summary-row {
+          font-size: 15px;
+          padding: 12px 0;
+        }
+
+        .summary-row.total {
+          font-size: 18px;
+          padding-top: 20px;
+        }
+
+        .checkout-btn {
+          margin-top: 25px;
+          padding: 12px 0;
+          font-size: 0.9rem;
+        }
+      }
+      `}</style>
+    </div>
+  )
 }
 
 export default Cart
