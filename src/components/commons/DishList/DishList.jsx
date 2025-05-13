@@ -51,7 +51,7 @@ const DishList = ({ dishes, from }) => {
 
 			</div>
 			{selectedDish && (
-				<DishModal dish={selectedDish} onClose={handleClose} />
+				<DishModal dish={selectedDish} isHome={true} onClose={handleClose} />
 			)}
 
 		</section>
