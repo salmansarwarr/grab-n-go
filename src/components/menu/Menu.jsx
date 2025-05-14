@@ -33,7 +33,7 @@ const dishes = [
     {
         id: 4,
         title: "Jollof Spaghetti",
-        image: "/img/menu/menu-image3.png",
+        image: "/img/menu/menu-image-joll.jpeg",
         description: "Jollof style Meaty (ground beef and beef sausage) based sauce w/ spaghetti pasta and fresh spinach.",
         ingredients: ["Ground beef", "Beef sausage", "Spaghetti pasta", "Fresh spinach"],
     },

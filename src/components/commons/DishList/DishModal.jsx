@@ -31,9 +31,11 @@ const DishModal = ({ dish, isHome, onClose }) => {
 
                 <div className="dish-modal-inner" onClick={e => e.stopPropagation()}>
                     <div className="dish-modal-content">
-                        <div className={`${isHome ? 'dish-modal-image-home' : 'dish-modal-image'}`}>
-                            <img src={dish.image} alt={dish.title} />
-                            <div className="fading-shadow"></div>
+                        <div className="dish-modal-image-container">
+                            <div className={`${isHome ? 'dish-modal-image-home' : 'dish-modal-image'}`}>
+                                <img src={dish.image} alt={dish.title} />
+                                <div className="fading-shadow"></div>
+                            </div>
                         </div>
                         <div className="dish-modal-details">
                             <h2 className="dish-modal-title">{dish.title}</h2>

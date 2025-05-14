@@ -2,16 +2,30 @@ import Image from "next/image";
 import Link from "next/link";
 import { GoArrowUpRight } from "react-icons/go";
 
-const DishCard = ({ dish, onClick }) => {
+const DishCard = ({ key, dish, onClick }) => {
 	return (
 		<div className="dish" onClick={onClick} style={{ cursor: 'pointer' }}>
-			<Image
-				className="img-fluid"
-				width={285}
-				height={225}
-				src={dish.image}
-				alt="dish1"
-			/>
+
+			{
+				dish.image === "/img/menu/menu-image-joll.jpeg" ?
+					<Image
+						className="img-fluid"
+						width={285}
+						height={225}
+						src={dish.image}
+						alt="dish1"
+						style={{ borderRadius: '30px', objectFit: 'cover' }}
+
+					/>
+					:
+					<Image
+						className="img-fluid"
+						width={285}
+						height={225}
+						src={dish.image}
+						alt="dish1"
+					/>
+			}
 			<div className="btn-group">
 				<h3>{dish.title}</h3>
 				<Link className="arrow" href="#" onClick={e => e.preventDefault()}>
