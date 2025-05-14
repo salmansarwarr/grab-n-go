@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import OrderSuccessModal from "./OrderSuccessModal";
-import "./Checkout.scss";
 
 export default function Checkout() {
     const [payment, setPayment] = useState("card");
