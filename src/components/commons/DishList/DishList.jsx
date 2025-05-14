@@ -4,27 +4,6 @@ import DishCard from "./DishCard";
 import DishModal from "./DishModal";
 
 const DishList = ({ dishes, from }) => {
-	const [selectedDish, setSelectedDish] = useState(null);
-
-	useEffect(() => {
-		if (selectedDish) {
-			document.body.style.overflow = 'hidden';
-		} else {
-			document.body.style.overflow = '';
-		}
-		return () => {
-			document.body.style.overflow = '';
-		};
-	}, [selectedDish]);
-
-	const handleCardClick = (dish) => {
-		setSelectedDish(dish);
-	};
-
-	const handleClose = () => {
-		setSelectedDish(null);
-	};
-
 	return (
 		<section id="dishes">
 			<div className="container" data-aos="fade-up">
@@ -40,7 +19,7 @@ const DishList = ({ dishes, from }) => {
 				)}
 				<div className="dishes" data-aos="fade-up">
 					{dishes.map((dish) => (
-						<DishCard key={dish.id} dish={dish} onClick={() => handleCardClick(dish)} />
+						<DishCard key={dish.id} dish={dish} onClick={() => {}} />
 					))}
 				</div>
 				<div className="button">
@@ -50,10 +29,6 @@ const DishList = ({ dishes, from }) => {
 				</div>
 
 			</div>
-			{selectedDish && (
-				<DishModal dish={selectedDish} isHome={true} onClose={handleClose} />
-			)}
-
 		</section>
 	);
 };
