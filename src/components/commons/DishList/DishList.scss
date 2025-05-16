@@ -234,6 +234,9 @@
 .dish-modal {
   width: 992px;
   @media (max-width: 1280px) {
+    width: 85%;
+  }
+  @media (max-width: 768px) {
     width: 100%;
   }
 }
@@ -248,12 +251,16 @@
   position: relative;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
 
-  @media (max-width: 1250px) {
+  @media (max-width: 768px) {
+    padding: 15px;
+  }
+
+  @media (max-width: 1280px) {
     width: 100%;
     height: auto;
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 900px) and (min-width: 769px) {
     padding: 15px;
   }
 }
@@ -286,6 +293,10 @@
   align-items: center;
   gap: 2.5rem;
 
+  @media (max-width: 1280px) {
+    gap: 2rem;
+  }
+
   @media (max-width: 768px) {
     flex-direction: column;
     gap: 1.5rem;
@@ -299,18 +310,14 @@
   align-items: center;
   justify-content: center;
 
-  @media (max-width: 1250px) {
-    width: 50%;
-    height: 650px;
-  }
-
-  @media (max-width: 900px) {
-    width: 100%;
-    height: 450px;
+  @media (max-width: 1280px) {
+    width: 45%;
+    height: 520px;
   }
 
   @media (max-width: 768px) {
-    height: auto;
+    width: 100%;
+    height: 350px;
   }
 }
 
@@ -357,9 +364,6 @@
     max-width: 98vw;
     gap: 1.5rem;
   }
-  .dish-modal {
-    height: 100%;
-  }
 }
 
 .fading-shadow {
@@ -385,9 +389,9 @@
   justify-content: flex-start;
   padding: 30px 0;
 
-  @media (max-width: 1250px) {
-    width: 50%;
-  }
+  // @media (max-width: 1280px) {
+  //   width: 45%;
+  // }
 
   @media (max-width: 900px) {
     width: 100%;
@@ -406,6 +410,11 @@
     font-size: 32px;
     margin-bottom: 15px;
   }
+
+  @media (max-width: 900px) and (min-width: 769px) {
+    font-size: 42px;
+    margin-bottom: 20px;
+  }
 }
 
 .dish-modal-desc {
@@ -418,6 +427,11 @@
   @media (max-width: 768px) {
     font-size: 16px;
     margin-bottom: 15px;
+  }
+
+  @media (max-width: 900px) and (min-width: 769px) {
+    font-size: 16px;
+    margin-bottom: 20px;
   }
 }
 
@@ -444,6 +458,11 @@
     padding: 12px 30px;
     font-size: 16px;
   }
+
+  @media (max-width: 900px) and (min-width: 769px) {
+    padding: 12px 35px;
+    font-size: 16px;
+  }
 }
 
 .dish-modal-rating {
@@ -458,6 +477,10 @@
   margin: 40px 0 40px 0;
   border: none;
   border-top: 1.5px solid #eee;
+
+  @media (max-width: 900px) and (min-width: 769px) {
+    margin: 30px 0;
+  }
 }
 
 .dish-modal-ingredients h3 {
@@ -471,6 +494,11 @@
     font-size: 24px;
     margin-bottom: 15px;
   }
+
+  @media (max-width: 900px) and (min-width: 769px) {
+    font-size: 26px;
+    margin-bottom: 20px;
+  }
 }
 
 .ingredients-list {
@@ -480,6 +508,10 @@
 
   @media (max-width: 768px) {
     gap: 0.8rem;
+  }
+
+  @media (max-width: 900px) and (min-width: 769px) {
+    gap: 0.9rem;
   }
 }
 
@@ -495,6 +527,11 @@
   @media (max-width: 768px) {
     width: 80px;
     font-size: 16px;
+  }
+
+  @media (max-width: 900px) and (min-width: 769px) {
+    font-size: 18px;
+    width: 90px;
   }
 }
 
@@ -512,6 +549,12 @@
     width: 80px;
     height: 80px;
   }
+
+  @media (max-width: 900px) and (min-width: 769px) {
+    width: 90px;
+    height: 90px;
+    margin-bottom: 8px;
+  }
 }
 
 .ingredient-img img {
@@ -522,6 +565,11 @@
   @media (max-width: 768px) {
     width: 50px;
     height: 50px;
+  }
+
+  @media (max-width: 900px) and (min-width: 769px) {
+    width: 60px;
+    height: 60px;
   }
 }
 
@@ -535,6 +583,11 @@
     flex-direction: column;
     gap: 1rem;
     margin-top: 25px;
+  }
+
+  @media (max-width: 900px) and (min-width: 769px) {
+    gap: 1rem;
+    margin-top: 30px;
   }
 }
 
@@ -553,6 +606,11 @@
     width: 100%;
     justify-content: center;
     padding: 15px 20px;
+    font-size: 16px;
+  }
+
+  @media (max-width: 900px) and (min-width: 769px) {
+    padding: 15px 30px;
     font-size: 16px;
   }
 }
@@ -581,6 +639,11 @@
   transition: background 0.2s;
 
   @media (max-width: 768px) {
+    padding: 15px;
+    font-size: 16px;
+  }
+
+  @media (max-width: 900px) and (min-width: 769px) {
     padding: 15px;
     font-size: 16px;
   }
