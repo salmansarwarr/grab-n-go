@@ -9,30 +9,56 @@ const DishModal = ({ dish, isHome, onClose }) => {
 
     const handleMinus = (e) => {
         e.stopPropagation();
-        setQuantity(q => Math.max(1, q - 1));
+        setQuantity((q) => Math.max(1, q - 1));
     };
     const handlePlus = (e) => {
         e.stopPropagation();
-        setQuantity(q => q + 1);
+        setQuantity((q) => q + 1);
     };
     const handleAddToCart = (e) => {
         e.stopPropagation();
         router.push("/addtocart");
     };
 
+    const ingredientIcons = {
+        "Jerk chicken": "Ellipse 7.png",
+        "Jerk gravy": "sause.png",
+        "Mashed potatoes": "potato.png",
+        "Sautéed kale": "kale.png",
+        "Mushroom": "mushroom.png",
+        "Cherry tomatoes": "cherry-tomato.png",
+        "Spinach": "spinach.png",
+        "Fried rice": "fried-rice.png",
+        "Chicken": "chicken.png",
+        "Vegetables": "vegetables.png",
+        "Ground beef": "beef-steak.png",
+        "Beef sausage": "meat.png",
+        "Spaghetti pasta": "spaghetti.png",
+        "Fresh spinach": "spinach.png",
+        "Mixed veggies": "vegetables.png",
+        "Basmati Rice": "Ellipse 8.png",
+        "Salmon": "salmon.png",
+        "Sweet potatoes": "potato.png",
+        "Sweet peppers": "pepper.png"
+    };
+
+
     return (
         <div className="dish-modal-backdrop" onClick={onClose}>
-            <div className="dish-modal" onClick={e => e.stopPropagation()}>
+            <div className="dish-modal" onClick={(e) => e.stopPropagation()}>
                 <div className="dish-modal-close-btn">
                     <button className="close-btn" onClick={onClose}>
                         <FaX />
                     </button>
                 </div>
 
-                <div className="dish-modal-inner" onClick={e => e.stopPropagation()}>
+                <div className="dish-modal-inner" onClick={(e) => e.stopPropagation()}>
                     <div className="dish-modal-content">
                         <div className="dish-modal-image-container">
-                            <div className={`${isHome ? 'dish-modal-image-home' : 'dish-modal-image'}`}>
+                            <div
+                                className={`${isHome ? "dish-modal-image-home" : "dish-modal-image"
+                                    }`}
+                            >
                                 <img src={dish.image} alt={dish.title} />
                                 <div className="fading-shadow"></div>
                             </div>
@@ -53,7 +79,7 @@ const DishModal = ({ dish, isHome, onClose }) => {
                             <hr />
                             <div className="dish-modal-ingredients">
                                 <h3>Main Ingredients</h3>
-                                <div className="ingredients-list">
+                                {/* <div className="ingredients-list">
                                     <div className="ingredient-item">
                                         {
                                             dish.ingredients[0] && (
@@ -89,7 +115,25 @@ const DishModal = ({ dish, isHome, onClose }) => {
                                             </div>
                                         )
                                     }
+                                </div> */}
+                                <div className="ingredients-list">
+                                    {dish.ingredients.map((ingredient, i) => {
+                                        const iconName = ingredientIcons[ingredient];
+                                        const iconPath = iconName
+                                            ? `/img/menu/${iconName}`
+                                            : "/img/menu/Ellipse 6.png"; // fallback
+
+                                        return (
+                                            <div key={i} className="ingredient-item">
+                                                <div className="ingredient-img" style={{ background: '#ffe5c2' }}>
+                                                    <img src={iconPath} alt={ingredient} />
+                                                </div>
+                                                <span>{ingredient}</span>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
+
                             </div>
                             <div className="dish-modal-actions">
                                 <div className="quantity-selector">
@@ -97,7 +141,9 @@ const DishModal = ({ dish, isHome, onClose }) => {
                                     <span>{quantity}</span>
                                     <button onClick={handlePlus}>+</button>
                                 </div>
-                                <button className="add-to-cart" onClick={handleAddToCart}>Add To Cart</button>
+                                <button className="add-to-cart" onClick={handleAddToCart}>
+                                    Add To Cart
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -107,4 +153,4 @@ const DishModal = ({ dish, isHome, onClose }) => {
     );
 };
 
-export default DishModal; 
+export default DishModal;
