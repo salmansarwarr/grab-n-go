@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
 import { RxCross1, RxHamburgerMenu } from "react-icons/rx";
-import { useSwipeable } from 'react-swipeable';
+import { useSwipeable } from "react-swipeable";
 
 const Navbar = () => {
   const [isVisible, setIsVisible] = useState(true);
@@ -49,7 +49,11 @@ const Navbar = () => {
   }, [lastScrollY]);
 
   return (
-    <nav {...swipeHandlers} id="navbar" className={`navbar ${isVisible ? "visible" : "hidden"}`}>
+    <nav
+      {...swipeHandlers}
+      id="navbar"
+      className={`navbar ${isVisible ? "visible" : "hidden"}`}
+    >
       <div className="nav-wrapper">
         {/* LOGO */}
         <div className="logo">
@@ -73,7 +77,7 @@ const Navbar = () => {
           id="check"
           checked={menuOpen}
           onChange={handleMenuToggle}
-          style={{ display: 'none' }} // Hide the checkbox itself
+          style={{ display: "none" }} // Hide the checkbox itself
         />
         <label htmlFor="check" className="checkbtn">
           {menuOpen ? <RxCross1 /> : <RxHamburgerMenu />}
@@ -97,21 +101,17 @@ const Navbar = () => {
             <Link href="#contact-us">Contact</Link>
           </li>
           <div className="menu-btn">
-            <Link
+            {/* <Link
               target="_blank"
               href="https://www.indiegogo.com/projects/grab-n-go-express#/"
             >
-              Invest Now
-            </Link>
+              Partner with us
+            </Link> */}
+            <Link href="/partner-with-us">Partner with us</Link>
           </div>
         </ul>
         <div className="btn">
-          <Link
-            target="_blank"
-            href="https://www.indiegogo.com/projects/grab-n-go-express#/"
-          >
-            Invest Now
-          </Link>
+          <Link href="/partner-with-us">Partner with us</Link>
         </div>
       </div>
     </nav>
