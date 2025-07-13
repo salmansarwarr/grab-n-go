@@ -95,12 +95,8 @@ const Hero = () => {
                 <Link class="btn" href="/services">
                   Learn More
                 </Link>
-                <Link
-                  class="btn outline"
-                  target="_blank"
-                  href="https://www.indiegogo.com/projects/grab-n-go-express#/"
-                >
-                  Invest Now
+                <Link class="btn outline" href="/partner-with-us">
+                  Partner with us
                 </Link>
               </div>
             </div>
