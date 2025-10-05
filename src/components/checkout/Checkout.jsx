@@ -138,14 +138,14 @@ export default function Checkout() {
     };
 
     const getCryptoAmount = () => {
-        // You should use a real price feed in production
         const prices = {
-            ETH: 0.0005,
-            USDT: 2,
-            USDC: 2,
+            ETH: 3000, // 1 ETH = $3000
+            USDT: 1,   // 1 USDT = $1
+            USDC: 1,   // 1 USDC = $1
         };
+    
         return total / prices[cryptoCurrency];
-    };
+    };    
 
     const handleCryptoPayment = async () => {
         setIsProcessingCrypto(true);
