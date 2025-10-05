@@ -208,6 +208,43 @@
   margin-top: 0.2rem;
 }
 
+.crypto-payment-section {
+  margin-top: 20px;
+}
+
+.connect-wallet-btn {
+  width: 100%;
+  padding: 12px;
+  background: #3396FF;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.wallet-connected {
+  padding: 20px;
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+
+.disconnect-btn {
+  margin-top: 10px;
+  padding: 8px 16px;
+  background: #ff4444;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.crypto-amount {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #ddd;
+}
+
 @media (max-width: 1260px) {
   .checkout-page {
     padding: 4rem 2rem;

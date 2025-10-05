@@ -1,8 +1,35 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import OrderSuccessModal from "./OrderSuccessModal";
+import { useAppKit } from '@reown/appkit/react';
+import { useAccount, useDisconnect, useSendTransaction, useWaitForTransactionReceipt, useSwitchChain, useWriteContract } from 'wagmi';
+import { parseEther, parseUnits } from 'viem';
+
+// Token contract addresses
+const USDT_BSC = "0x55d398326f99059fF775485246999027B3197955";
+const USDC_ARBITRUM = "0xaf88d065e77c8cC2239327C5EDb3A432268e5831";
+
+// Recipient address (same for all chains)
+const RECIPIENT_ADDRESS = "0x1366E85788027242E7CCA687c56A7c9d1b867034";
+
+// ERC20 ABI for transfer function
+const ERC20_ABI = [
+  {
+    "constant": false,
+    "inputs": [
+      { "name": "_to", "type": "address" },
+      { "name": "_value", "type": "uint256" }
+    ],
+    "name": "transfer",
+    "outputs": [{ "name": "", "type": "bool" }],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+];
 
 export default function Checkout() {
     const [payment, setPayment] = useState("card");
+    const [cryptoCurrency, setCryptoCurrency] = useState("ETH"); // ETH, USDT, USDC
     const [form, setForm] = useState({
         firstName: "",
         lastName: "",
@@ -14,6 +41,34 @@ export default function Checkout() {
     });
     const [errors, setErrors] = useState({});
     const [showSuccess, setShowSuccess] = useState(false);
+    const [isProcessingCrypto, setIsProcessingCrypto] = useState(false);
+
+    // Reown/Wagmi hooks
+    const { open } = useAppKit();
+    const { address, isConnected, chain } = useAccount();
+    const { disconnect } = useDisconnect();
+    const { switchChain } = useSwitchChain();
+    
+    // For native token transfers (ETH)
+    const { data: hash, sendTransaction, isPending: isSendPending, error: txError } = useSendTransaction();
+    
+    // For ERC20 token transfers (USDT, USDC)
+    const { data: tokenHash, writeContract, isPending: isWritePending, error: tokenError } = useWriteContract();
+    
+    const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
+        hash: hash || tokenHash,
+    });
+
+    // Combined transaction error handling
+    useEffect(() => {
+        const error = txError || tokenError;
+        if (error) {
+            console.error("Transaction error:", error);
+            setErrors({ crypto: error.message || "Transaction failed. Please try again." });
+            setIsProcessingCrypto(false);
+        }
+    }, [txError, tokenError]);    
+
     const orderItems = [
         {
             id: 1,
@@ -43,6 +98,14 @@ export default function Checkout() {
     const subtotal = 99.0;
     const total = 234.0;
 
+    // Watch for successful crypto payment
+    useEffect(() => {
+        if (isConfirmed && isProcessingCrypto) {
+            setShowSuccess(true);
+            setIsProcessingCrypto(false);
+        }
+    }, [isConfirmed, isProcessingCrypto]);
+
     // Validation logic
     const validate = () => {
         const newErrors = {};
@@ -55,15 +118,106 @@ export default function Checkout() {
             if (!form.exp) newErrors.exp = "Expiration date is required.";
             if (!form.cvc) newErrors.cvc = "CVC is required.";
         }
+        if (payment === "crypto" && !isConnected) {
+            newErrors.crypto = "Please connect your wallet first.";
+        }
         return newErrors;
+    };
+
+    const getRequiredChainId = () => {
+        switch (cryptoCurrency) {
+            case "ETH":
+                return 1; // Ethereum Mainnet
+            case "USDT":
+                return 56; // BSC
+            case "USDC":
+                return 42161; // Arbitrum
+            default:
+                return 1;
+        }
+    };
+
+    const getCryptoAmount = () => {
+        // You should use a real price feed in production
+        const prices = {
+            ETH: 0.0005,
+            USDT: 2,
+            USDC: 2,
+        };
+        return total / prices[cryptoCurrency];
+    };
+
+    const handleCryptoPayment = async () => {
+        setIsProcessingCrypto(true);
+        setErrors({});
+        console.log('Initiating crypto payment');
+        
+        try {
+            const requiredChainId = getRequiredChainId();
+            
+            // Check if user is on the correct chain
+            if (chain?.id !== requiredChainId) {
+                console.log('Switching chain to:', requiredChainId);
+                await switchChain({ chainId: requiredChainId });
+                // Wait a bit for the chain switch to complete
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+
+            if (cryptoCurrency === "ETH") {
+                // Native ETH transfer
+                const ethAmount = getCryptoAmount().toFixed(6);
+                console.log('Sending ETH transaction:', {
+                    to: RECIPIENT_ADDRESS,
+                    value: parseEther(ethAmount),
+                    ethAmount
+                });
+                
+                sendTransaction({
+                    to: RECIPIENT_ADDRESS,
+                    value: parseEther(ethAmount),
+                });
+            } else {
+                // ERC20 token transfer (USDT or USDC)
+                const tokenAddress = cryptoCurrency === "USDT" ? USDT_BSC : USDC_ARBITRUM;
+                const decimals = 6; // Both USDT and USDC use 6 decimals
+                const amount = getCryptoAmount().toFixed(decimals);
+                
+                console.log('Sending token transaction:', {
+                    token: cryptoCurrency,
+                    to: RECIPIENT_ADDRESS,
+                    amount,
+                    tokenAddress
+                });
+                
+                writeContract({
+                    address: tokenAddress,
+                    abi: ERC20_ABI,
+                    functionName: 'transfer',
+                    args: [RECIPIENT_ADDRESS, parseUnits(amount, decimals)],
+                });
+            }
+            
+            console.log('Transaction initiated');
+        } catch (error) {
+            console.error("Crypto payment error:", error);
+            setErrors({ crypto: error.message || "Transaction failed. Please try again." });
+            setIsProcessingCrypto(false);
+        }
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
         const newErrors = validate();
-        setErrors(newErrors);
+        console.log(newErrors);
+        
         if (Object.keys(newErrors).length === 0) {
-            setShowSuccess(true);
+            if (payment === "crypto") {
+                handleCryptoPayment();
+            } else {
+                setShowSuccess(true);
+            }
+        } else {
+            setErrors(newErrors);
         }
     };
 
@@ -71,9 +225,12 @@ export default function Checkout() {
     const orderSuccessData = {
         code: `#${Math.floor(Math.random() * 10000)}_${Date.now().toString().slice(-5)}`,
         total: `$${(total * 5.75).toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
-        payment: payment === "card" ? "Credit Card" : "Cryptocurrency",
+        payment: payment === "card" ? "Credit Card" : `Cryptocurrency (${cryptoCurrency})`,
         items: orderItems.map(i => ({ image: i.image, qty: i.qty })),
+        txHash: hash || tokenHash,
     };
+
+    const isPending = isSendPending || isWritePending;
 
     return (
         <>
@@ -120,6 +277,7 @@ export default function Checkout() {
                                 <span>Pay with Cryptocurrency</span>
                             </label>
                         </div>
+                        
                         {payment === "card" && (
                             <>
                                 <div className="form-row">
@@ -143,8 +301,51 @@ export default function Checkout() {
                                 </div>
                             </>
                         )}
+
+                        {payment === "crypto" && (
+                            <div className="crypto-payment-section">
+                                <div className="form-group">
+                                    <label>SELECT CRYPTOCURRENCY</label>
+                                    <select 
+                                        value={cryptoCurrency} 
+                                        onChange={e => setCryptoCurrency(e.target.value)}
+                                        className="crypto-select"
+                                    >
+                                        <option value="ETH">ETH (Ethereum Mainnet)</option>
+                                        <option value="USDT">USDT (BEP20 - BSC)</option>
+                                        <option value="USDC">USDC (Arbitrum)</option>
+                                    </select>
+                                </div>
+                                
+                                {!isConnected ? (
+                                    <button type="button" className="connect-wallet-btn" onClick={() => open()}>
+                                        Connect Wallet
+                                    </button>
+                                ) : (
+                                    <div className="wallet-connected">
+                                        <p>✓ Wallet Connected: {address?.slice(0, 6)}...{address?.slice(-4)}</p>
+                                        {chain && (
+                                            <p>Network: {chain.name} {chain.id !== getRequiredChainId() && '⚠️ Wrong network'}</p>
+                                        )}
+                                        <button type="button" className="disconnect-btn" onClick={() => disconnect()}>
+                                            Disconnect
+                                        </button>
+                                        <div className="crypto-amount">
+                                            <p>Amount: ${total.toFixed(2)} USD</p>
+                                            <p>≈ {getCryptoAmount().toFixed(6)} {cryptoCurrency}</p>
+                                        </div>
+                                    </div>
+                                )}
+                                {errors.crypto && <div className="input-error">{errors.crypto}</div>}
+                            </div>
+                        )}
                     </div>
-                    <button className="place-order-btn">Place Order</button>
+                    <button 
+                        className="place-order-btn" 
+                        disabled={isPending || isConfirming}
+                    >
+                        {isPending || isConfirming ? "Processing..." : "Place Order"}
+                    </button>
                 </form>
                 <div className="order-summary">
                     <h3>Order summary</h3>
@@ -177,4 +378,3 @@ export default function Checkout() {
         </>
     );
 }
-
