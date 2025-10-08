@@ -20,6 +20,8 @@ jobs:
           host: ${{ secrets.DO_SERVER_IP }}
           username: ${{ secrets.DO_SERVER_USERNAME }}
           password: ${{ secrets.DO_SERVER_PASSWORD }}
+          timeout: 60m
+          command_timeout: 40m
           script: |
             # Navigate to the project directory
             cd /var/www/grab-n-go
