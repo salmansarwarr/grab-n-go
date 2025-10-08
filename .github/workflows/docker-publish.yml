@@ -9,11 +9,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Check out the code
+      # 1️⃣ Check out the repo
       - name: Check out repository
         uses: actions/checkout@v2
 
-      # 2. Deploy to Ubuntu server
+      # 2️⃣ Connect and deploy via SSH
       - name: Deploy to Ubuntu server
         uses: appleboy/ssh-action@v0.1.10
         with:
@@ -23,22 +23,72 @@ jobs:
           timeout: 60m
           command_timeout: 40m
           script: |
-            # Navigate to the project directory
             cd /var/www/grab-n-go
 
-            # Pull the latest code
+            echo "🧹 Cleaning old Docker resources..."
+            docker stop grab-n-go || true
+            docker rm grab-n-go || true
+            docker builder prune -a -f || true
+            docker system prune -a -f || true
+
+            echo "⬇️ Pulling latest code..."
             git reset --hard
             git pull
 
-            # Build the Docker image
-            docker build -t grab-n-go .
+            echo "🐳 Building new Docker image (multi-stage)..."
+            docker build --no-cache -t grab-n-go .
 
-            # Stop and remove any running container with the same name
-            docker stop grab-n-go || true
-            docker rm grab-n-go || true
-
-            # Run the new container
+            echo "🚀 Running container..."
             docker run -d \
               -p 3000:3000 \
               --name grab-n-go \
               grab-n-go:latest
+
+            echo "✅ Deployment complete!"
+
+# old code
+
+# name: Build, Push, and Deploy Docker Image
+
+# on:
+#   push:
+#     branches: ["main"]
+
+# jobs:
+#   build-push-deploy:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       # 1. Check out the code
+#       - name: Check out repository
+#         uses: actions/checkout@v2
+
+#       # 2. Deploy to Ubuntu server
+#       - name: Deploy to Ubuntu server
+#         uses: appleboy/ssh-action@v0.1.10
+#         with:
+#           host: ${{ secrets.DO_SERVER_IP }}
+#           username: ${{ secrets.DO_SERVER_USERNAME }}
+#           password: ${{ secrets.DO_SERVER_PASSWORD }}
+#           timeout: 60m
+#           command_timeout: 40m
+#           script: |
+#             # Navigate to the project directory
+#             cd /var/www/grab-n-go
+
+#             # Pull the latest code
+#             git reset --hard
+#             git pull
+
+#             # Build the Docker image
+#             docker build -t grab-n-go .
+
+#             # Stop and remove any running container with the same name
+#             docker stop grab-n-go || true
+#             docker rm grab-n-go || true
+
+#             # Run the new container
+#             docker run -d \
+#               -p 3000:3000 \
+#               --name grab-n-go \
+#               grab-n-go:latest
