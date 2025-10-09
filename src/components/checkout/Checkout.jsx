@@ -266,7 +266,7 @@ export default function Checkout() {
                         </div>
                     </div>
                     <div className="checkout-section">
-                        <h3>Payment method</h3>
+                        <h3>Payment methods</h3>
                         <div className="payment-methods">
                             <label className={payment === "card" ? "active" : ""}>
                                 <input type="radio" name="payment" checked={payment === "card"} onChange={() => setPayment("card")} />
