@@ -19,7 +19,9 @@ createAppKit({
   networks: [mainnet, arbitrum, bsc],
   projectId,
   features: {
-    analytics: true
+    analytics: true,
+    email: false,
+    socials: false
   }
 })
 
