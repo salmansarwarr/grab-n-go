@@ -508,9 +508,6 @@ export default function Checkout() {
                                                         <p style={{ color: '#856404', fontSize: '14px', margin: '5px 0' }}>
                                                             Please switch to {getNetworkName(requiredChainId)} in your Trust Wallet app.
                                                         </p>
-                                                        <p style={{ color: '#856404', fontSize: '12px', margin: '5px 0', fontStyle: 'italic' }}>
-                                                            After switching, click "Refresh Network" button above.
-                                                        </p>
                                                         <button 
                                                             type="button" 
                                                             className="switch-network-btn"
