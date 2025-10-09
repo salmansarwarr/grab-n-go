@@ -65,39 +65,39 @@ export default function Checkout() {
     });
 
     // Manual refresh function to detect chain changes
-    // const refreshChainInfo = useCallback(async () => {
-    //     if (!isConnected) return;
+    const refreshChainInfo = useCallback(async () => {
+        if (!isConnected) return;
         
-    //     setIsRefreshing(true);
-    //     try {
-    //         // Get fresh account info from wagmi core
-    //         const account = getAccount(config);
-    //         console.log('Refreshed account info:', account);
+        setIsRefreshing(true);
+        try {
+            // Get fresh account info from wagmi core
+            const account = getAccount(config);
+            console.log('Refreshed account info:', account);
             
-    //         if (account.chainId) {
-    //             setDetectedChainId(account.chainId);
-    //             console.log('Detected chain ID:', account.chainId);
-    //         }
+            if (account.chainId) {
+                setDetectedChainId(account.chainId);
+                console.log('Detected chain ID:', account.chainId);
+            }
             
-    //         // Also check if window.ethereum exists (for browser wallets)
-    //         if (typeof window !== 'undefined' && window.ethereum) {
-    //             try {
-    //                 const currentChainId = await window.ethereum.request({ 
-    //                     method: 'eth_chainId' 
-    //                 });
-    //                 const chainIdDecimal = parseInt(currentChainId, 16);
-    //                 console.log('Chain ID from ethereum provider:', chainIdDecimal);
-    //                 setDetectedChainId(chainIdDecimal);
-    //             } catch (err) {
-    //                 console.log('Could not get chain from window.ethereum:', err);
-    //             }
-    //         }
-    //     } catch (error) {
-    //         console.error('Error refreshing chain info:', error);
-    //     } finally {
-    //         setIsRefreshing(false);
-    //     }
-    // }, [isConnected, config]);
+            // Also check if window.ethereum exists (for browser wallets)
+            if (typeof window !== 'undefined' && window.ethereum) {
+                try {
+                    const currentChainId = await window.ethereum.request({ 
+                        method: 'eth_chainId' 
+                    });
+                    const chainIdDecimal = parseInt(currentChainId, 16);
+                    console.log('Chain ID from ethereum provider:', chainIdDecimal);
+                    setDetectedChainId(chainIdDecimal);
+                } catch (err) {
+                    console.log('Could not get chain from window.ethereum:', err);
+                }
+            }
+        } catch (error) {
+            console.error('Error refreshing chain info:', error);
+        } finally {
+            setIsRefreshing(false);
+        }
+    }, [isConnected, config]);
 
     // Auto-refresh on mount and when connection changes
     useEffect(() => {
