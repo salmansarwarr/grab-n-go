@@ -5,9 +5,27 @@ import { useAccount, useDisconnect, useSendTransaction, useWaitForTransactionRec
 import { parseEther, parseUnits } from 'viem';
 import { getAccount, watchAccount } from '@wagmi/core';
 
-// Token contract addresses
-const USDT_BSC = "0x55d398326f99059fF775485246999027B3197955";
-const USDC_ARBITRUM = "0xaf88d065e77c8cC2239327C5EDb3A432268e5831";
+// Accepted tokens and their configurations
+const ACCEPTED_TOKENS = {
+  ETH: {
+    chainId: 1,
+    chainName: 'Ethereum Mainnet',
+    native: true,
+    decimals: 18
+  },
+  USDT: {
+    chainId: 56,
+    chainName: 'BSC',
+    address: "0x55d398326f99059fF775485246999027B3197955",
+    decimals: 18
+  },
+  USDC: {
+    chainId: 42161,
+    chainName: 'Arbitrum',
+    address: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+    decimals: 6
+  }
+};
 
 // Recipient address (same for all chains)
 const RECIPIENT_ADDRESS = "0x1366E85788027242E7CCA687c56A7c9d1b867034";
@@ -30,7 +48,6 @@ const ERC20_ABI = [
 
 export default function Checkout() {
     const [payment, setPayment] = useState("card");
-    const [cryptoCurrency, setCryptoCurrency] = useState("ETH"); // ETH, USDT, USDC
     const [form, setForm] = useState({
         firstName: "",
         lastName: "",
@@ -44,6 +61,7 @@ export default function Checkout() {
     const [showSuccess, setShowSuccess] = useState(false);
     const [isProcessingCrypto, setIsProcessingCrypto] = useState(false);
     const [detectedChainId, setDetectedChainId] = useState(null);
+    const [detectedToken, setDetectedToken] = useState(null);
     const [isRefreshing, setIsRefreshing] = useState(false);
 
     // Reown/Wagmi hooks
@@ -64,6 +82,16 @@ export default function Checkout() {
         hash: hash || tokenHash,
     });
 
+    // Detect which token is being used based on chain ID
+    const detectTokenFromChain = useCallback((chainId) => {
+        for (const [token, config] of Object.entries(ACCEPTED_TOKENS)) {
+            if (config.chainId === chainId) {
+                return token;
+            }
+        }
+        return null;
+    }, []);
+
     // Manual refresh function to detect chain changes
     const refreshChainInfo = useCallback(async () => {
         if (!isConnected) return;
@@ -76,33 +104,23 @@ export default function Checkout() {
             
             if (account.chainId) {
                 setDetectedChainId(account.chainId);
-                console.log('Detected chain ID:', account.chainId);
+                const token = detectTokenFromChain(account.chainId);
+                setDetectedToken(token);
+                console.log('Detected chain ID:', account.chainId, 'Token:', token);
             }
-            
-            // Also check if window.ethereum exists (for browser wallets)
-            // if (typeof window !== 'undefined' && window.ethereum) {
-            //     try {
-            //         const currentChainId = await window.ethereum.request({ 
-            //             method: 'eth_chainId' 
-            //         });
-            //         const chainIdDecimal = parseInt(currentChainId, 16);
-            //         console.log('Chain ID from ethereum provider:', chainIdDecimal);
-            //         setDetectedChainId(chainIdDecimal);
-            //     } catch (err) {
-            //         console.log('Could not get chain from window.ethereum:', err);
-            //     }
-            // }
         } catch (error) {
             console.error('Error refreshing chain info:', error);
         } finally {
             setIsRefreshing(false);
         }
-    }, [isConnected, config]);
+    }, [isConnected, config, detectTokenFromChain]);
 
     // Auto-refresh on mount and when connection changes
     useEffect(() => {
         if (isConnected) {
             refreshChainInfo();
+        } else {
+            setDetectedToken(null);
         }
     }, [isConnected, refreshChainInfo]);
 
@@ -115,20 +133,24 @@ export default function Checkout() {
                 console.log('Account changed:', data);
                 if (data.chainId) {
                     setDetectedChainId(data.chainId);
+                    const token = detectTokenFromChain(data.chainId);
+                    setDetectedToken(token);
                 }
             },
         });
 
         return () => unwatch();
-    }, [config, isConnected]);
+    }, [config, isConnected, detectTokenFromChain]);
 
     // Update detected chain when chainId changes
     useEffect(() => {
         if (chainId) {
             console.log('chainId hook updated:', chainId);
             setDetectedChainId(chainId);
+            const token = detectTokenFromChain(chainId);
+            setDetectedToken(token);
         }
-    }, [chainId]);
+    }, [chainId, detectTokenFromChain]);
 
     // Listen to window.ethereum events (for WalletConnect/Trust Wallet)
     useEffect(() => {
@@ -138,12 +160,16 @@ export default function Checkout() {
             const newChainId = parseInt(chainIdHex, 16);
             console.log('Chain changed event:', newChainId);
             setDetectedChainId(newChainId);
+            const token = detectTokenFromChain(newChainId);
+            setDetectedToken(token);
         };
 
         const handleAccountsChanged = (accounts) => {
             console.log('Accounts changed:', accounts);
             if (accounts.length > 0) {
                 refreshChainInfo();
+            } else {
+                setDetectedToken(null);
             }
         };
 
@@ -154,7 +180,7 @@ export default function Checkout() {
             window.ethereum.removeListener('chainChanged', handleChainChanged);
             window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
         };
-    }, [isConnected, refreshChainInfo]);
+    }, [isConnected, refreshChainInfo, detectTokenFromChain]);
 
     // Periodic polling as fallback (for mobile wallets that don't emit events)
     useEffect(() => {
@@ -230,86 +256,41 @@ export default function Checkout() {
         if (payment === "crypto" && !isConnected) {
             newErrors.crypto = "Please connect your wallet first.";
         }
+        if (payment === "crypto" && isConnected && !detectedToken) {
+            newErrors.crypto = "Unsupported network. Please switch to Ethereum, BSC, or Arbitrum.";
+        }
         return newErrors;
     };
 
-    const getRequiredChainId = () => {
-        switch (cryptoCurrency) {
-            case "ETH":
-                return 1; // Ethereum Mainnet
-            case "USDT":
-                return 56; // BSC
-            case "USDC":
-                return 42161; // Arbitrum
-            default:
-                return 1;
-        }
-    };
-
-    const getNetworkName = (chainId) => {
-        const networkNames = {
-            1: 'Ethereum Mainnet',
-            56: 'BSC',
-            42161: 'Arbitrum'
-        };
-        return networkNames[chainId] || `Chain ${chainId}`;
-    };
-
     const getCryptoAmount = () => {
+        if (!detectedToken) return 0;
+        
         const prices = {
             ETH: 3000, // 1 ETH = $3000
             USDT: 1,   // 1 USDT = $1
             USDC: 1,   // 1 USDC = $1
         };
     
-        return total / prices[cryptoCurrency];
+        return total / prices[detectedToken];
     };    
 
     const handleCryptoPayment = async () => {
+        if (!detectedToken) {
+            setErrors({ crypto: "No supported token detected. Please switch to a supported network." });
+            return;
+        }
+
         setIsProcessingCrypto(true);
         setErrors({});
-        console.log('Initiating crypto payment');
+        console.log('Initiating crypto payment with token:', detectedToken);
         
         // Refresh chain info before payment
         await refreshChainInfo();
         
         try {
-            const requiredChainId = getRequiredChainId();
-            const currentChain = detectedChainId || chainId;
+            const tokenConfig = ACCEPTED_TOKENS[detectedToken];
             
-            // Check current chain
-            console.log('Current chain:', currentChain, 'Required:', requiredChainId);
-            
-            // Check if user is on the correct chain
-            if (currentChain !== requiredChainId) {
-                console.log('Wrong network detected.');
-                
-                setErrors({ 
-                    crypto: `Please switch to ${getNetworkName(requiredChainId)} in your wallet and try again.` 
-                });
-                setIsProcessingCrypto(false);
-                
-                // Try to request chain switch via wallet
-                try {
-                    await switchChain({ chainId: requiredChainId });
-                    // Wait for chain switch confirmation
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-                    
-                    // Refresh to get new chain
-                    await refreshChainInfo();
-                    
-                    return;
-                } catch (switchError) {
-                    console.error('Chain switch failed:', switchError);
-                    setErrors({ 
-                        crypto: `Please manually switch to ${getNetworkName(requiredChainId)} in your wallet and try again.` 
-                    });
-                    setIsProcessingCrypto(false);
-                    return;
-                }
-            }
-
-            if (cryptoCurrency === "ETH") {
+            if (detectedToken === "ETH") {
                 // Native ETH transfer
                 const ethAmount = getCryptoAmount().toFixed(6);
                 console.log('Sending ETH transaction:', {
@@ -324,22 +305,20 @@ export default function Checkout() {
                 });
             } else {
                 // ERC20 token transfer (USDT or USDC)
-                const tokenAddress = cryptoCurrency === "USDT" ? USDT_BSC : USDC_ARBITRUM;
-                const decimals = 6; // Both USDT and USDC use 6 decimals
-                const amount = getCryptoAmount().toFixed(decimals);
+                const amount = getCryptoAmount().toFixed(tokenConfig.decimals);
                 
                 console.log('Sending token transaction:', {
-                    token: cryptoCurrency,
+                    token: detectedToken,
                     to: RECIPIENT_ADDRESS,
                     amount,
-                    tokenAddress
+                    tokenAddress: tokenConfig.address
                 });
                 
                 writeContract({
-                    address: tokenAddress,
+                    address: tokenConfig.address,
                     abi: ERC20_ABI,
                     functionName: 'transfer',
-                    args: [RECIPIENT_ADDRESS, parseUnits(amount, decimals)],
+                    args: [RECIPIENT_ADDRESS, parseUnits(amount, tokenConfig.decimals)],
                 });
             }
             
@@ -371,15 +350,13 @@ export default function Checkout() {
     const orderSuccessData = {
         code: `#${Math.floor(Math.random() * 10000)}_${Date.now().toString().slice(-5)}`,
         total: `$${(total * 5.75).toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
-        payment: payment === "card" ? "Credit Card" : `Cryptocurrency (${cryptoCurrency})`,
+        payment: payment === "card" ? "Credit Card" : `Cryptocurrency (${detectedToken || 'Unknown'})`,
         items: orderItems.map(i => ({ image: i.image, qty: i.qty })),
         txHash: hash || tokenHash,
     };
 
     const isPending = isSendPending || isWritePending;
-    const requiredChainId = getRequiredChainId();
-    const currentChain = detectedChainId || chainId;
-    const isWrongNetwork = isConnected && currentChain !== requiredChainId;
+    const isWrongNetwork = isConnected && !detectedToken;
 
     return (
         <>
@@ -453,17 +430,22 @@ export default function Checkout() {
 
                         {payment === "crypto" && (
                             <div className="crypto-payment-section">
-                                <div className="form-group">
-                                    <label>SELECT CRYPTOCURRENCY</label>
-                                    <select 
-                                        value={cryptoCurrency} 
-                                        onChange={e => setCryptoCurrency(e.target.value)}
-                                        className="crypto-select"
-                                    >
-                                        <option value="ETH">ETH (Ethereum Mainnet)</option>
-                                        <option value="USDT">USDT (BEP20 - BSC)</option>
-                                        <option value="USDC">USDC (Arbitrum)</option>
-                                    </select>
+                                <div className="accepted-tokens-info">
+                                    <h4>Accepted Cryptocurrencies</h4>
+                                    <div className="token-list">
+                                        <div className="token-item">
+                                            <strong>ETH</strong> - Ethereum Mainnet
+                                        </div>
+                                        <div className="token-item">
+                                            <strong>USDT</strong> - BSC (BEP20)
+                                        </div>
+                                        <div className="token-item">
+                                            <strong>USDC</strong> - Arbitrum
+                                        </div>
+                                    </div>
+                                    <p style={{ fontSize: '14px', color: '#666', marginTop: '10px' }}>
+                                        Connect your wallet on any supported network to pay with the native token.
+                                    </p>
                                 </div>
                                 
                                 {!isConnected ? (
@@ -474,67 +456,80 @@ export default function Checkout() {
                                     <div className="wallet-connected">
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                             <p>✓ Wallet Connected: {address?.slice(0, 6)}...{address?.slice(-4)}</p>
-                                            {/* <button 
-                                                type="button" 
-                                                onClick={refreshChainInfo}
-                                                disabled={isRefreshing}
-                                                style={{
-                                                    padding: '5px 10px',
-                                                    fontSize: '12px',
-                                                    cursor: isRefreshing ? 'not-allowed' : 'pointer',
-                                                    backgroundColor: '#f0f0f0',
-                                                    border: '1px solid #ccc',
-                                                    borderRadius: '4px'
-                                                }}
-                                            >
-                                                {isRefreshing ? '🔄 Refreshing...' : '🔄 Refresh Network'}
-                                            </button> */}
                                         </div>
-                                        {currentChain && (
-                                            <div>
-                                                <p>Current Network: {getNetworkName(currentChain)} (Chain ID: {currentChain})</p>
-                                                <p>Required Network: {getNetworkName(requiredChainId)} (Chain ID: {requiredChainId})</p>
-                                                {isWrongNetwork && (
-                                                    <div className="network-warning" style={{ 
-                                                        backgroundColor: '#fff3cd', 
+                                        
+                                        {detectedChainId && (
+                                            <div className="network-info">
+                                                <p>
+                                                    Current Network: {ACCEPTED_TOKENS[detectedToken]?.chainName || 'Unknown'} 
+                                                    {detectedToken && ` (${detectedToken})`}
+                                                </p>
+                                                {detectedToken ? (
+                                                    <div className="detected-token" style={{ 
+                                                        backgroundColor: '#d4edda', 
                                                         padding: '10px', 
                                                         borderRadius: '5px', 
                                                         marginTop: '10px',
-                                                        border: '1px solid #ffc107'
+                                                        border: '1px solid #c3e6cb'
                                                     }}>
-                                                        <p style={{ color: '#856404', fontWeight: 'bold', margin: '5px 0' }}>
-                                                            ⚠️ Wrong Network Detected!
+                                                        <p style={{ color: '#155724', fontWeight: 'bold', margin: '5px 0' }}>
+                                                            ✓ {detectedToken} Detected
                                                         </p>
-                                                        <p style={{ color: '#856404', fontSize: '14px', margin: '5px 0' }}>
-                                                            Please switch to {getNetworkName(requiredChainId)} in your Trust Wallet app.
+                                                        <p style={{ color: '#155724', fontSize: '14px', margin: '5px 0' }}>
+                                                            Ready to accept payment in {detectedToken}
                                                         </p>
-                                                        <button 
-                                                            type="button" 
-                                                            className="switch-network-btn"
-                                                            onClick={() => switchChain({ chainId: requiredChainId })}
-                                                            style={{
-                                                                marginTop: '10px',
-                                                                padding: '8px 16px',
-                                                                backgroundColor: '#ffc107',
-                                                                border: 'none',
-                                                                borderRadius: '5px',
-                                                                cursor: 'pointer',
-                                                                fontWeight: 'bold'
-                                                            }}
-                                                        >
-                                                            Request Switch to {getNetworkName(requiredChainId)}
-                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <div className="unsupported-network" style={{ 
+                                                        backgroundColor: '#f8d7da', 
+                                                        padding: '10px', 
+                                                        borderRadius: '5px', 
+                                                        marginTop: '10px',
+                                                        border: '1px solid #f5c6cb'
+                                                    }}>
+                                                        <p style={{ color: '#721c24', fontWeight: 'bold', margin: '5px 0' }}>
+                                                            ⚠️ Unsupported Network
+                                                        </p>
+                                                        <p style={{ color: '#721c24', fontSize: '14px', margin: '5px 0' }}>
+                                                            Please switch to Ethereum, BSC, or Arbitrum in your wallet.
+                                                        </p>
+                                                        <div className="supported-networks-buttons" style={{ marginTop: '10px' }}>
+                                                            {Object.entries(ACCEPTED_TOKENS).map(([token, config]) => (
+                                                                <button
+                                                                    key={token}
+                                                                    type="button"
+                                                                    onClick={() => switchChain({ chainId: config.chainId })}
+                                                                    style={{
+                                                                        marginRight: '10px',
+                                                                        marginBottom: '5px',
+                                                                        padding: '8px 12px',
+                                                                        backgroundColor: '#007bff',
+                                                                        color: 'white',
+                                                                        border: 'none',
+                                                                        borderRadius: '5px',
+                                                                        cursor: 'pointer',
+                                                                        fontSize: '12px'
+                                                                    }}
+                                                                >
+                                                                    Switch to {config.chainName}
+                                                                </button>
+                                                            ))}
+                                                        </div>
                                                     </div>
                                                 )}
                                             </div>
                                         )}
+                                        
                                         <button type="button" className="disconnect-btn" onClick={() => disconnect()}>
                                             Disconnect
                                         </button>
-                                        <div className="crypto-amount">
-                                            <p>Amount: ${total.toFixed(2)} USD</p>
-                                            <p>≈ {getCryptoAmount().toFixed(6)} {cryptoCurrency}</p>
-                                        </div>
+                                        
+                                        {detectedToken && (
+                                            <div className="crypto-amount">
+                                                <p>Amount: ${total.toFixed(2)} USD</p>
+                                                <p>≈ {getCryptoAmount().toFixed(6)} {detectedToken}</p>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                                 {errors.crypto && <div className="input-error">{errors.crypto}</div>}
@@ -543,8 +538,8 @@ export default function Checkout() {
                     </div>
                     <button 
                         className="place-order-btn" 
-                        disabled={isPending || isConfirming || (payment === "crypto" && isWrongNetwork)}
-                        title={isWrongNetwork ? "Please switch to the correct network first" : ""}
+                        disabled={isPending || isConfirming || (payment === "crypto" && (!isConnected || !detectedToken))}
+                        title={!detectedToken && payment === "crypto" ? "Please connect to a supported network first" : ""}
                     >
                         {isPending || isConfirming ? "Processing..." : "Place Order"}
                     </button>
