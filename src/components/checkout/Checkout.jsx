@@ -80,18 +80,18 @@ export default function Checkout() {
             }
             
             // Also check if window.ethereum exists (for browser wallets)
-            if (typeof window !== 'undefined' && window.ethereum) {
-                try {
-                    const currentChainId = await window.ethereum.request({ 
-                        method: 'eth_chainId' 
-                    });
-                    const chainIdDecimal = parseInt(currentChainId, 16);
-                    console.log('Chain ID from ethereum provider:', chainIdDecimal);
-                    setDetectedChainId(chainIdDecimal);
-                } catch (err) {
-                    console.log('Could not get chain from window.ethereum:', err);
-                }
-            }
+            // if (typeof window !== 'undefined' && window.ethereum) {
+            //     try {
+            //         const currentChainId = await window.ethereum.request({ 
+            //             method: 'eth_chainId' 
+            //         });
+            //         const chainIdDecimal = parseInt(currentChainId, 16);
+            //         console.log('Chain ID from ethereum provider:', chainIdDecimal);
+            //         setDetectedChainId(chainIdDecimal);
+            //     } catch (err) {
+            //         console.log('Could not get chain from window.ethereum:', err);
+            //     }
+            // }
         } catch (error) {
             console.error('Error refreshing chain info:', error);
         } finally {
