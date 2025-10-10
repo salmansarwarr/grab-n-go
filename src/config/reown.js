@@ -21,7 +21,8 @@ createAppKit({
   features: {
     analytics: true,
     email: false,
-    socials: false
+    socials: false,
+    walletConnect: true
   }
 })
 
