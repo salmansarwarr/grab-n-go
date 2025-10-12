@@ -194,7 +194,25 @@ export default function Checkout() {
         },
     ];
     const subtotal = 99.0;
-    const total = 234.0;
+    const total = 1;
+
+    useEffect(() => {
+    if (!isConnected) return;
+
+    const currentChain = detectedChainId || chainId;
+
+    if (!currentChain) return;
+
+    // Match the cryptoCurrency with the current chain
+    if (currentChain === 1 && cryptoCurrency !== "ETH") {
+        setCryptoCurrency("ETH");
+    } else if (currentChain === 56 && cryptoCurrency !== "USDT") {
+        setCryptoCurrency("USDT");
+    } else if (currentChain === 42161 && cryptoCurrency !== "USDC") {
+        setCryptoCurrency("USDC");
+    }
+}, [isConnected, detectedChainId, chainId]);
+
 
     // Watch for successful crypto payment
     useEffect(() => {
@@ -328,39 +346,51 @@ export default function Checkout() {
                 }
             }
 
-            if (cryptoCurrency === "ETH") {
-                // Native ETH transfer
-                const ethAmount = getCryptoAmount().toFixed(6);
-                console.log('Sending ETH transaction:', {
-                    to: RECIPIENT_ADDRESS,
-                    value: parseEther(ethAmount),
-                    ethAmount
-                });
-                
-                sendTransaction({
-                    to: RECIPIENT_ADDRESS,
-                    value: parseEther(ethAmount),
-                });
-            } else {
-                // ERC20 token transfer (USDT or USDC)
-                const tokenAddress = cryptoCurrency === "USDT" ? USDT_BSC : USDC_ARBITRUM;
-                const decimals = 6; // Both USDT and USDC use 6 decimals
-                const amount = getCryptoAmount().toFixed(decimals);
-                
-                console.log('Sending token transaction:', {
-                    token: cryptoCurrency,
-                    to: RECIPIENT_ADDRESS,
-                    amount,
-                    tokenAddress
-                });
-                
-                writeContract({
-                    address: tokenAddress,
-                    abi: ERC20_ABI,
-                    functionName: 'transfer',
-                    args: [RECIPIENT_ADDRESS, parseUnits(amount, decimals)],
-                });
-            }
+ // Fixed: Use correct decimals for each token
+ const getTokenDecimals = (currency) => {
+    switch (currency) {
+        case "USDT": return 18; // BSC USDT uses 18 decimals
+        case "USDC": return 6;  // Arbitrum USDC uses 6 decimals
+        default: return 18;
+    }
+};
+
+if (cryptoCurrency === "ETH") {
+    // For $1 worth of ETH (assuming 1 ETH = $3000)
+    const ethAmount = (1 / 3000).toFixed(6); // 0.000333 ETH
+    console.log('Sending ETH transaction:', {
+        to: RECIPIENT_ADDRESS,
+        value: parseEther(ethAmount),
+        ethAmount
+    });
+    
+    sendTransaction({
+        to: RECIPIENT_ADDRESS,
+        value: parseEther(ethAmount),
+    });
+} else {
+    // For USDT/USDC - send exactly $1 worth
+    const tokenAddress = cryptoCurrency === "USDT" ? USDT_BSC : USDC_ARBITRUM;
+    const decimals = getTokenDecimals(cryptoCurrency);
+    
+    // Send exactly 1 token (since 1 USDT/USDC = $1)
+    const amount = "1"; // 1 token = $1
+    
+    console.log('Sending token transaction:', {
+        token: cryptoCurrency,
+        to: RECIPIENT_ADDRESS,
+        amount,
+        decimals,
+        tokenAddress
+    });
+    
+    writeContract({
+        address: tokenAddress,
+        abi: ERC20_ABI,
+        functionName: 'transfer',
+        args: [RECIPIENT_ADDRESS, parseUnits(amount, decimals)],
+    });
+}
             
             console.log('Transaction initiated');
         } catch (error) {
