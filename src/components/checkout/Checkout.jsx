@@ -1,9 +1,18 @@
 import React, { useState, useEffect, useCallback } from "react";
 import OrderSuccessModal from "./OrderSuccessModal";
-import { useAppKit } from '@reown/appkit/react';
-import { useAccount, useDisconnect, useSendTransaction, useWaitForTransactionReceipt, useSwitchChain, useWriteContract, useChainId, useConfig } from 'wagmi';
-import { parseEther, parseUnits } from 'viem';
-import { getAccount, watchAccount } from '@wagmi/core';
+import { useAppKit } from "@reown/appkit/react";
+import {
+    useAccount,
+    useDisconnect,
+    useSendTransaction,
+    useWaitForTransactionReceipt,
+    useSwitchChain,
+    useWriteContract,
+    useChainId,
+    useConfig,
+} from "wagmi";
+import { parseEther, parseUnits } from "viem";
+import { getAccount, watchAccount } from "@wagmi/core";
 
 // Token contract addresses
 const USDT_BSC = "0x55d398326f99059fF775485246999027B3197955";
@@ -14,23 +23,21 @@ const RECIPIENT_ADDRESS = "0x1366E85788027242E7CCA687c56A7c9d1b867034";
 
 // ERC20 ABI for transfer function
 const ERC20_ABI = [
-  {
-    "constant": false,
-    "inputs": [
-      { "name": "_to", "type": "address" },
-      { "name": "_value", "type": "uint256" }
-    ],
-    "name": "transfer",
-    "outputs": [{ "name": "", "type": "bool" }],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-  }
+    {
+        type: "function",
+        name: "transfer",
+        stateMutability: "nonpayable",
+        inputs: [
+            { name: "to", type: "address" },
+            { name: "amount", type: "uint256" },
+        ],
+        outputs: [{ name: "", type: "bool" }],
+    },
 ];
 
 export default function Checkout() {
     const [payment, setPayment] = useState("card");
-    const [cryptoCurrency, setCryptoCurrency] = useState("ETH"); // ETH, USDT, USDC
+    const [cryptoCurrency, setCryptoCurrency] = useState("ETH");
     const [form, setForm] = useState({
         firstName: "",
         lastName: "",
@@ -49,124 +56,13 @@ export default function Checkout() {
 
     // Reown/Wagmi hooks
     const { open } = useAppKit();
-    const { address, isConnected, chain } = useAccount();
+    const { address, isConnected } = useAccount();
     const chainId = useChainId();
     const config = useConfig();
     const { disconnect } = useDisconnect();
     const { switchChain } = useSwitchChain();
-    
-    // For native token transfers (ETH)
-    const { data: hash, sendTransaction, isPending: isSendPending, error: txError } = useSendTransaction();
-    
-    // For ERC20 token transfers (USDT, USDC)
-    const { data: tokenHash, writeContract, isPending: isWritePending, error: tokenError } = useWriteContract();
-    
-    const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
-        hash: hash || tokenHash,
-    });
 
-    // Manual refresh function to detect chain changes
-    const refreshChainInfo = useCallback(async () => {
-        if (!isConnected) return;
-        
-        setIsRefreshing(true);
-        try {
-            // Get fresh account info from wagmi core
-            const account = getAccount(config);
-            console.log('Refreshed account info:', account);
-            
-            if (account.chainId) {
-                setDetectedChainId(account.chainId);
-                console.log('Detected chain ID:', account.chainId);
-            }
-        } catch (error) {
-            console.error('Error refreshing chain info:', error);
-        } finally {
-            setIsRefreshing(false);
-        }
-    }, [isConnected, config]);
-
-    // Auto-refresh on mount and when connection changes
-    useEffect(() => {
-        if (isConnected) {
-            refreshChainInfo();
-        }
-    }, [isConnected, refreshChainInfo]);
-
-    // Watch for account changes using wagmi core
-    useEffect(() => {
-        if (!isConnected) return;
-
-        const unwatch = watchAccount(config, {
-            onChange(data) {
-                console.log('Account changed:', data);
-                if (data.chainId) {
-                    setDetectedChainId(data.chainId);
-                    setIsSwitchingChain(false); // Stop switching state when chain actually changes
-                }
-            },
-        });
-
-        return () => unwatch();
-    }, [config, isConnected]);
-
-    // Update detected chain when chainId changes
-    useEffect(() => {
-        if (chainId) {
-            console.log('chainId hook updated:', chainId);
-            setDetectedChainId(chainId);
-        }
-    }, [chainId]);
-
-    // Listen to window.ethereum events (for WalletConnect/Trust Wallet)
-    useEffect(() => {
-        if (typeof window === 'undefined' || !window.ethereum || !isConnected) return;
-
-        const handleChainChanged = (chainIdHex) => {
-            const newChainId = parseInt(chainIdHex, 16);
-            console.log('Chain changed event:', newChainId);
-            setDetectedChainId(newChainId);
-            setIsSwitchingChain(false); // Stop switching state when chain actually changes
-        };
-
-        const handleAccountsChanged = (accounts) => {
-            console.log('Accounts changed:', accounts);
-            if (accounts.length > 0) {
-                refreshChainInfo();
-            }
-        };
-
-        window.ethereum.on('chainChanged', handleChainChanged);
-        window.ethereum.on('accountsChanged', handleAccountsChanged);
-
-        return () => {
-            window.ethereum.removeListener('chainChanged', handleChainChanged);
-            window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
-        };
-    }, [isConnected, refreshChainInfo]);
-
-    // Periodic polling as fallback (for mobile wallets that don't emit events)
-    useEffect(() => {
-        if (!isConnected || payment !== "crypto") return;
-
-        const interval = setInterval(() => {
-            console.log('Polling for chain changes...');
-            refreshChainInfo();
-        }, 3000); // Poll every 3 seconds
-
-        return () => clearInterval(interval);
-    }, [isConnected, payment, refreshChainInfo]);
-
-    // Combined transaction error handling
-    useEffect(() => {
-        const error = txError || tokenError;
-        if (error) {
-            console.error("Transaction error:", error);
-            setErrors({ crypto: error.message || "Transaction failed. Please try again." });
-            setIsProcessingCrypto(false);
-        }
-    }, [txError, tokenError]);
-
+    // Order calculation
     const orderItems = [
         {
             id: 1,
@@ -193,28 +89,181 @@ export default function Checkout() {
             qty: 2,
         },
     ];
-    const subtotal = 99.0;
-    const total = 1;
+    
+    const subtotal = orderItems.reduce((sum, item) => sum + item.price * item.qty, 0);
+    const deliveryFee = 5.75;
+    const total = subtotal + deliveryFee;
 
-    useEffect(() => {
-    if (!isConnected) return;
+    // Crypto prices for conversion
+    const CRYPTO_PRICES = {
+        ETH: 3000,
+        USDT: 1,
+        USDC: 1,
+    };
 
+    const getCryptoAmount = () => {
+        return total / CRYPTO_PRICES[cryptoCurrency];
+    };
+
+    const getRequiredChainId = (currency = cryptoCurrency) => {
+        switch (currency) {
+            case "ETH":
+                return 1; // Ethereum Mainnet
+            case "USDT":
+                return 56; // BSC
+            case "USDC":
+                return 42161; // Arbitrum
+            default:
+                return 1;
+        }
+    };
+
+    const getNetworkName = (chainId) => {
+        const networkNames = {
+            1: "Ethereum Mainnet",
+            56: "BSC",
+            42161: "Arbitrum",
+        };
+        return networkNames[chainId] || `Chain ${chainId}`;
+    };
+
+    const requiredChainId = getRequiredChainId();
     const currentChain = detectedChainId || chainId;
+    const isWrongNetwork = isConnected && currentChain !== requiredChainId;
 
-    if (!currentChain) return;
+    const {
+        data: tokenHash,
+        writeContract,
+        isPending: isWritePending,
+        error: tokenError,
+        reset: resetWrite,
+    } = useWriteContract();
 
-    // Match the cryptoCurrency with the current chain
-    if (currentChain === 1 && cryptoCurrency !== "ETH") {
-        setCryptoCurrency("ETH");
-    } else if (currentChain === 56 && cryptoCurrency !== "USDT") {
-        setCryptoCurrency("USDT");
-    } else if (currentChain === 42161 && cryptoCurrency !== "USDC") {
-        setCryptoCurrency("USDC");
-    }
-}, [isConnected, detectedChainId, chainId]);
+    const {
+        data: hash,
+        sendTransaction,
+        isPending: isSendPending,
+        error: txError,
+        reset: resetSend,
+    } = useSendTransaction();
 
+    const isPending = isSendPending || isWritePending;
 
-    // Watch for successful crypto payment
+    const { isLoading: isConfirming, isSuccess: isConfirmed } =
+        useWaitForTransactionReceipt({
+            hash: hash || tokenHash,
+        });
+
+    // Manual refresh function
+    const refreshChainInfo = useCallback(async () => {
+        if (!isConnected) return;
+
+        setIsRefreshing(true);
+        try {
+            const account = getAccount(config);
+            if (account.chainId) {
+                setDetectedChainId(account.chainId);
+            }
+        } catch (error) {
+            console.error("Error refreshing chain info:", error);
+        } finally {
+            setIsRefreshing(false);
+        }
+    }, [isConnected, config]);
+
+    // Auto-refresh on connection
+    useEffect(() => {
+        if (isConnected) {
+            refreshChainInfo();
+        }
+    }, [isConnected, refreshChainInfo]);
+
+    // Watch for account changes
+    useEffect(() => {
+        if (!isConnected) return;
+
+        const unwatch = watchAccount(config, {
+            onChange(data) {
+                if (data.chainId) {
+                    setDetectedChainId(data.chainId);
+                    setIsSwitchingChain(false);
+                }
+            },
+        });
+
+        return () => unwatch();
+    }, [config, isConnected]);
+
+    // Update detected chain when chainId changes
+    useEffect(() => {
+        if (chainId) {
+            setDetectedChainId(chainId);
+        }
+    }, [chainId]);
+
+    // Listen to window.ethereum events
+    useEffect(() => {
+        if (typeof window === "undefined" || !window.ethereum || !isConnected)
+            return;
+
+        const handleChainChanged = (chainIdHex) => {
+            const newChainId = parseInt(chainIdHex, 16);
+            setDetectedChainId(newChainId);
+            setIsSwitchingChain(false);
+        };
+
+        const handleAccountsChanged = (accounts) => {
+            if (accounts.length > 0) {
+                refreshChainInfo();
+            }
+        };
+
+        window.ethereum.on("chainChanged", handleChainChanged);
+        window.ethereum.on("accountsChanged", handleAccountsChanged);
+
+        return () => {
+            window.ethereum.removeListener("chainChanged", handleChainChanged);
+            window.ethereum.removeListener("accountsChanged", handleAccountsChanged);
+        };
+    }, [isConnected, refreshChainInfo]);
+
+    // Periodic polling
+    useEffect(() => {
+        if (!isConnected || payment !== "crypto") return;
+
+        const interval = setInterval(() => {
+            refreshChainInfo();
+        }, 3000);
+
+        return () => clearInterval(interval);
+    }, [isConnected, payment, refreshChainInfo]);
+
+    // Auto-select currency based on connected chain
+    useEffect(() => {
+        if (!isConnected || !currentChain) return;
+
+        if (currentChain === 1 && cryptoCurrency !== "ETH") {
+            setCryptoCurrency("ETH");
+        } else if (currentChain === 56 && cryptoCurrency !== "USDT") {
+            setCryptoCurrency("USDT");
+        } else if (currentChain === 42161 && cryptoCurrency !== "USDC") {
+            setCryptoCurrency("USDC");
+        }
+    }, [isConnected, currentChain, cryptoCurrency]);
+
+    // Handle transaction errors
+    useEffect(() => {
+        const error = txError || tokenError;
+        if (error) {
+            console.error("Transaction error:", error);
+            setErrors({
+                crypto: error.message || "Transaction failed. Please try again.",
+            });
+            setIsProcessingCrypto(false);
+        }
+    }, [txError, tokenError]);
+
+    // Watch for successful payment
     useEffect(() => {
         if (isConfirmed && isProcessingCrypto) {
             setShowSuccess(true);
@@ -240,162 +289,125 @@ export default function Checkout() {
         return newErrors;
     };
 
-    const getRequiredChainId = (currency = cryptoCurrency) => {
-        switch (currency) {
-            case "ETH":
-                return 1; // Ethereum Mainnet
-            case "USDT":
-                return 56; // BSC
-            case "USDC":
-                return 42161; // Arbitrum
-            default:
-                return 1;
-        }
-    };
-
-    const getNetworkName = (chainId) => {
-        const networkNames = {
-            1: 'Ethereum Mainnet',
-            56: 'BSC',
-            42161: 'Arbitrum'
-        };
-        return networkNames[chainId] || `Chain ${chainId}`;
-    };
-
-    const getCryptoAmount = () => {
-        const prices = {
-            ETH: 3000, // 1 ETH = $3000
-            USDT: 1,   // 1 USDT = $1
-            USDC: 1,   // 1 USDC = $1
-        };
-    
-        return total / prices[cryptoCurrency];
-    };
-
-    // Function to handle cryptocurrency change with auto chain switching
+    // Handle cryptocurrency change with auto chain switching
     const handleCryptoCurrencyChange = async (newCurrency) => {
         setCryptoCurrency(newCurrency);
         setErrors({});
-        
+
         if (!isConnected) return;
-        
+
         const requiredChainId = getRequiredChainId(newCurrency);
         const currentChain = detectedChainId || chainId;
-        
-        // Check if we need to switch chains
+
         if (currentChain !== requiredChainId) {
             setIsSwitchingChain(true);
             try {
-                console.log(`Auto-switching to ${getNetworkName(requiredChainId)} for ${newCurrency}`);
                 await switchChain({ chainId: requiredChainId });
-                
-                // Note: The actual chain change will be detected by our event listeners
-                // which will update detectedChainId and setIsSwitchingChain(false)
-                
             } catch (switchError) {
-                console.error('Auto chain switch failed:', switchError);
+                console.error("Auto chain switch failed:", switchError);
                 setIsSwitchingChain(false);
-                setErrors({ 
-                    crypto: `Please manually switch to ${getNetworkName(requiredChainId)} in your wallet to use ${newCurrency}.` 
+                setErrors({
+                    crypto: `Please manually switch to ${getNetworkName(
+                        requiredChainId
+                    )} in your wallet to use ${newCurrency}.`,
                 });
             }
         }
-    };    
+    };
 
     const handleCryptoPayment = async () => {
         setIsProcessingCrypto(true);
         setErrors({});
-        console.log('Initiating crypto payment');
         
-        // Refresh chain info before payment
+        // Reset previous transactions
+        resetWrite?.();
+        resetSend?.();
+
         await refreshChainInfo();
-        
+
         try {
             const requiredChainId = getRequiredChainId();
             const currentChain = detectedChainId || chainId;
-            
-            // Check current chain
-            console.log('Current chain:', currentChain, 'Required:', requiredChainId);
-            
-            // Check if user is on the correct chain
+
+            console.log("Payment Details:", {
+                currency: cryptoCurrency,
+                requiredChain: requiredChainId,
+                currentChain: currentChain,
+                total: total
+            });
+
             if (currentChain !== requiredChainId) {
-                console.log('Wrong network detected.');
-                
-                setErrors({ 
-                    crypto: `Please switch to ${getNetworkName(requiredChainId)} in your wallet and try again.` 
+                setErrors({
+                    crypto: `Please switch to ${getNetworkName(
+                        requiredChainId
+                    )} in your wallet and try again.`,
                 });
                 setIsProcessingCrypto(false);
-                
-                // Try to request chain switch via wallet
+
                 try {
                     await switchChain({ chainId: requiredChainId });
-                    // Wait for chain switch confirmation
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-                    
-                    // Refresh to get new chain
+                    await new Promise((resolve) => setTimeout(resolve, 2000));
                     await refreshChainInfo();
-                    
                     return;
                 } catch (switchError) {
-                    console.error('Chain switch failed:', switchError);
-                    setErrors({ 
-                        crypto: `Please manually switch to ${getNetworkName(requiredChainId)} in your wallet and try again.` 
+                    console.error("Chain switch failed:", switchError);
+                    setErrors({
+                        crypto: `Please manually switch to ${getNetworkName(
+                            requiredChainId
+                        )} in your wallet and try again.`,
                     });
                     setIsProcessingCrypto(false);
                     return;
                 }
             }
 
- // Fixed: Use correct decimals for each token
- const getTokenDecimals = (currency) => {
-    switch (currency) {
-        case "USDT": return 18; // BSC USDT uses 18 decimals
-        case "USDC": return 6;  // Arbitrum USDC uses 6 decimals
-        default: return 18;
-    }
-};
-
-if (cryptoCurrency === "ETH") {
-    // For $1 worth of ETH (assuming 1 ETH = $3000)
-    const ethAmount = (1 / 3000).toFixed(6); // 0.000333 ETH
-    console.log('Sending ETH transaction:', {
-        to: RECIPIENT_ADDRESS,
-        value: parseEther(ethAmount),
-        ethAmount
-    });
-    
-    sendTransaction({
-        to: RECIPIENT_ADDRESS,
-        value: parseEther(ethAmount),
-    });
-} else {
-    // For USDT/USDC - send exactly $1 worth
-    const tokenAddress = cryptoCurrency === "USDT" ? USDT_BSC : USDC_ARBITRUM;
-    const decimals = getTokenDecimals(cryptoCurrency);
-    
-    // Send exactly 1 token (since 1 USDT/USDC = $1)
-    const amount = "1"; // 1 token = $1
-    
-    console.log('Sending token transaction:', {
-        token: cryptoCurrency,
-        to: RECIPIENT_ADDRESS,
-        amount,
-        decimals,
-        tokenAddress
-    });
-    
-    writeContract({
-        address: tokenAddress,
-        abi: ERC20_ABI,
-        functionName: 'transfer',
-        args: [RECIPIENT_ADDRESS, parseUnits(amount, decimals)],
-    });
-}
-            
-            console.log('Transaction initiated');
+            if (cryptoCurrency === "ETH") {
+                // For ETH, send the calculated amount
+                const cryptoAmount = getCryptoAmount();
+                const ethAmount = cryptoAmount.toString();
+                
+                console.log("Sending ETH:", ethAmount);
+                
+                sendTransaction({
+                    to: RECIPIENT_ADDRESS,
+                    value: parseEther(ethAmount),
+                });
+            } else if (cryptoCurrency === "USDT") {
+                // USDT uses 18 decimals on BSC
+                const cryptoAmount = getCryptoAmount();
+                const usdtAmountString = cryptoAmount.toFixed(18);
+                
+                
+                writeContract({
+                    address: USDT_BSC,
+                    abi: ERC20_ABI,
+                    functionName: "transfer",
+                    args: [
+                        RECIPIENT_ADDRESS,
+                        parseUnits("1", 18)
+                    ],
+                });
+            } else if (cryptoCurrency === "USDC") {
+                // USDC uses 6 decimals on Arbitrum
+                const cryptoAmount = getCryptoAmount();
+                const usdcAmountString = cryptoAmount.toFixed(6);
+                
+                
+                writeContract({
+                    address: USDC_ARBITRUM,
+                    abi: ERC20_ABI,
+                    functionName: "transfer",
+                    args: [
+                        RECIPIENT_ADDRESS,
+                        parseUnits("1", 6)
+                    ],
+                });
+            }
         } catch (error) {
             console.error("Crypto payment error:", error);
-            setErrors({ crypto: error.message || "Transaction failed. Please try again." });
+            setErrors({
+                crypto: error.message || "Transaction failed. Please try again.",
+            });
             setIsProcessingCrypto(false);
         }
     };
@@ -403,8 +415,7 @@ if (cryptoCurrency === "ETH") {
     const handleSubmit = (e) => {
         e.preventDefault();
         const newErrors = validate();
-        console.log(newErrors);
-        
+
         if (Object.keys(newErrors).length === 0) {
             if (payment === "crypto") {
                 handleCryptoPayment();
@@ -418,17 +429,17 @@ if (cryptoCurrency === "ETH") {
 
     // Prepare order data for modal
     const orderSuccessData = {
-        code: `#${Math.floor(Math.random() * 10000)}_${Date.now().toString().slice(-5)}`,
-        total: `$${(total * 5.75).toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
-        payment: payment === "card" ? "Credit Card" : `Cryptocurrency (${cryptoCurrency})`,
-        items: orderItems.map(i => ({ image: i.image, qty: i.qty })),
+        code: `#${Math.floor(Math.random() * 10000)}_${Date.now()
+            .toString()
+            .slice(-5)}`,
+        total: `$${total.toFixed(2)}`,
+        payment:
+            payment === "card"
+                ? "Credit Card"
+                : `Cryptocurrency (${cryptoCurrency})`,
+        items: orderItems.map((i) => ({ image: i.image, qty: i.qty })),
         txHash: hash || tokenHash,
     };
-
-    const isPending = isSendPending || isWritePending;
-    const requiredChainId = getRequiredChainId();
-    const currentChain = detectedChainId || chainId;
-    const isWrongNetwork = isConnected && currentChain !== requiredChainId;
 
     return (
         <>
@@ -439,62 +450,174 @@ if (cryptoCurrency === "ETH") {
                         <div className="form-row">
                             <div className="form-group">
                                 <label>FIRST NAME</label>
-                                <input type="text" placeholder="First name" value={form.firstName} onChange={e => setForm(f => ({ ...f, firstName: e.target.value }))} />
-                                {errors.firstName && <div className="input-error">{errors.firstName}</div>}
+                                <input
+                                    type="text"
+                                    placeholder="First name"
+                                    value={form.firstName}
+                                    onChange={(e) =>
+                                        setForm((f) => ({
+                                            ...f,
+                                            firstName: e.target.value,
+                                        }))
+                                    }
+                                />
+                                {errors.firstName && (
+                                    <div className="input-error">
+                                        {errors.firstName}
+                                    </div>
+                                )}
                             </div>
                             <div className="form-group">
                                 <label>LAST NAME</label>
-                                <input type="text" placeholder="Last name" value={form.lastName} onChange={e => setForm(f => ({ ...f, lastName: e.target.value }))} />
-                                {errors.lastName && <div className="input-error">{errors.lastName}</div>}
+                                <input
+                                    type="text"
+                                    placeholder="Last name"
+                                    value={form.lastName}
+                                    onChange={(e) =>
+                                        setForm((f) => ({
+                                            ...f,
+                                            lastName: e.target.value,
+                                        }))
+                                    }
+                                />
+                                {errors.lastName && (
+                                    <div className="input-error">
+                                        {errors.lastName}
+                                    </div>
+                                )}
                             </div>
                         </div>
                         <div className="form-row">
                             <div className="form-group">
                                 <label>PHONE NUMBER</label>
-                                <input type="text" placeholder="Phone number" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
-                                {errors.phone && <div className="input-error">{errors.phone}</div>}
+                                <input
+                                    type="text"
+                                    placeholder="Phone number"
+                                    value={form.phone}
+                                    onChange={(e) =>
+                                        setForm((f) => ({
+                                            ...f,
+                                            phone: e.target.value,
+                                        }))
+                                    }
+                                />
+                                {errors.phone && (
+                                    <div className="input-error">
+                                        {errors.phone}
+                                    </div>
+                                )}
                             </div>
                         </div>
                         <div className="form-row">
                             <div className="form-group">
                                 <label>EMAIL ADDRESS</label>
-                                <input type="email" placeholder="Your Email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
-                                {errors.email && <div className="input-error">{errors.email}</div>}
+                                <input
+                                    type="email"
+                                    placeholder="Your Email"
+                                    value={form.email}
+                                    onChange={(e) =>
+                                        setForm((f) => ({
+                                            ...f,
+                                            email: e.target.value,
+                                        }))
+                                    }
+                                />
+                                {errors.email && (
+                                    <div className="input-error">
+                                        {errors.email}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
                     <div className="checkout-section">
                         <h3>Payment methods</h3>
                         <div className="payment-methods">
-                            <label className={payment === "card" ? "active" : ""}>
-                                <input type="radio" name="payment" checked={payment === "card"} onChange={() => setPayment("card")} />
+                            <label
+                                className={payment === "card" ? "active" : ""}
+                            >
+                                <input
+                                    type="radio"
+                                    name="payment"
+                                    checked={payment === "card"}
+                                    onChange={() => setPayment("card")}
+                                />
                                 <span>Pay by Credit Card</span>
                             </label>
-                            <label className={payment === "crypto" ? "active" : ""}>
-                                <input type="radio" name="payment" checked={payment === "crypto"} onChange={() => setPayment("crypto")} />
+                            <label
+                                className={payment === "crypto" ? "active" : ""}
+                            >
+                                <input
+                                    type="radio"
+                                    name="payment"
+                                    checked={payment === "crypto"}
+                                    onChange={() => setPayment("crypto")}
+                                />
                                 <span>Pay with Cryptocurrency</span>
                             </label>
                         </div>
-                        
+
                         {payment === "card" && (
                             <>
                                 <div className="form-row">
                                     <div className="form-group">
                                         <label>CARD NUMBER</label>
-                                        <input type="text" placeholder="1234 1234 1234" value={form.card} onChange={e => setForm(f => ({ ...f, card: e.target.value }))} />
-                                        {errors.card && <div className="input-error">{errors.card}</div>}
+                                        <input
+                                            type="text"
+                                            placeholder="1234 1234 1234"
+                                            value={form.card}
+                                            onChange={(e) =>
+                                                setForm((f) => ({
+                                                    ...f,
+                                                    card: e.target.value,
+                                                }))
+                                            }
+                                        />
+                                        {errors.card && (
+                                            <div className="input-error">
+                                                {errors.card}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                                 <div className="form-row">
                                     <div className="form-group">
                                         <label>EXPIRATION DATE</label>
-                                        <input type="text" placeholder="MM/YY" value={form.exp} onChange={e => setForm(f => ({ ...f, exp: e.target.value }))} />
-                                        {errors.exp && <div className="input-error">{errors.exp}</div>}
+                                        <input
+                                            type="text"
+                                            placeholder="MM/YY"
+                                            value={form.exp}
+                                            onChange={(e) =>
+                                                setForm((f) => ({
+                                                    ...f,
+                                                    exp: e.target.value,
+                                                }))
+                                            }
+                                        />
+                                        {errors.exp && (
+                                            <div className="input-error">
+                                                {errors.exp}
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="form-group">
                                         <label>CVC</label>
-                                        <input type="text" placeholder="CVC code" value={form.cvc} onChange={e => setForm(f => ({ ...f, cvc: e.target.value }))} />
-                                        {errors.cvc && <div className="input-error">{errors.cvc}</div>}
+                                        <input
+                                            type="text"
+                                            placeholder="CVC code"
+                                            value={form.cvc}
+                                            onChange={(e) =>
+                                                setForm((f) => ({
+                                                    ...f,
+                                                    cvc: e.target.value,
+                                                }))
+                                            }
+                                        />
+                                        {errors.cvc && (
+                                            <div className="input-error">
+                                                {errors.cvc}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </>
@@ -504,72 +627,163 @@ if (cryptoCurrency === "ETH") {
                             <div className="crypto-payment-section">
                                 <div className="form-group">
                                     <label>SELECT CRYPTOCURRENCY</label>
-                                    <select 
-                                        value={cryptoCurrency} 
-                                        onChange={e => handleCryptoCurrencyChange(e.target.value)}
+                                    <select
+                                        value={cryptoCurrency}
+                                        onChange={(e) =>
+                                            handleCryptoCurrencyChange(
+                                                e.target.value
+                                            )
+                                        }
                                         className="crypto-select"
                                         disabled={isSwitchingChain}
                                     >
-                                        <option value="ETH">ETH (Ethereum Mainnet)</option>
-                                        <option value="USDT">USDT (BEP20 - BSC)</option>
-                                        <option value="USDC">USDC (Arbitrum)</option>
+                                        <option value="ETH">
+                                            ETH (Ethereum Mainnet)
+                                        </option>
+                                        <option value="USDT">
+                                            USDT (BEP20 - BSC)
+                                        </option>
+                                        <option value="USDC">
+                                            USDC (Arbitrum)
+                                        </option>
                                     </select>
                                     {isSwitchingChain && (
-                                        <div style={{ marginTop: '10px', color: '#666' }}>
-                                            ⏳ Requesting network switch in your wallet...
+                                        <div
+                                            style={{
+                                                marginTop: "10px",
+                                                color: "#666",
+                                            }}
+                                        >
+                                            ⏳ Requesting network switch in your
+                                            wallet...
                                         </div>
                                     )}
                                 </div>
-                                
+
                                 {!isConnected ? (
-                                    <button type="button" className="connect-wallet-btn" onClick={() => open()}>
+                                    <button
+                                        type="button"
+                                        className="connect-wallet-btn"
+                                        onClick={() => open()}
+                                    >
                                         Connect Wallet
                                     </button>
                                 ) : (
                                     <div className="wallet-connected">
-                                        <p>✓ Wallet Connected: {address?.slice(0, 6)}...{address?.slice(-4)}</p>
+                                        <p>
+                                            ✓ Wallet Connected:{" "}
+                                            {address?.slice(0, 6)}...
+                                            {address?.slice(-4)}
+                                        </p>
                                         {currentChain && (
                                             <div>
-                                                <p>Current Network: {getNetworkName(currentChain)} (Chain ID: {currentChain})</p>
-                                                <p>Required Network: {getNetworkName(requiredChainId)} (Chain ID: {requiredChainId})</p>
-                                                {isWrongNetwork && !isSwitchingChain && (
-                                                    <div className="network-warning" style={{ 
-                                                        backgroundColor: '#fff3cd', 
-                                                        padding: '10px', 
-                                                        borderRadius: '5px', 
-                                                        marginTop: '10px',
-                                                        border: '1px solid #ffc107'
-                                                    }}>
-                                                        <p style={{ color: '#856404', fontWeight: 'bold', margin: '5px 0' }}>
-                                                            ⚠️ Wrong Network Detected!
-                                                        </p>
-                                                        <p style={{ color: '#856404', fontSize: '14px', margin: '5px 0' }}>
-                                                            Please switch to {getNetworkName(requiredChainId)} in your wallet to use {cryptoCurrency}.
-                                                        </p>
-                                                    </div>
-                                                )}
+                                                <p>
+                                                    Current Network:{" "}
+                                                    {getNetworkName(
+                                                        currentChain
+                                                    )}{" "}
+                                                    (Chain ID: {currentChain})
+                                                </p>
+                                                <p>
+                                                    Required Network:{" "}
+                                                    {getNetworkName(
+                                                        requiredChainId
+                                                    )}{" "}
+                                                    (Chain ID: {requiredChainId}
+                                                    )
+                                                </p>
+                                                {isWrongNetwork &&
+                                                    !isSwitchingChain && (
+                                                        <div
+                                                            className="network-warning"
+                                                            style={{
+                                                                backgroundColor:
+                                                                    "#fff3cd",
+                                                                padding: "10px",
+                                                                borderRadius:
+                                                                    "5px",
+                                                                marginTop:
+                                                                    "10px",
+                                                                border: "1px solid #ffc107",
+                                                            }}
+                                                        >
+                                                            <p
+                                                                style={{
+                                                                    color: "#856404",
+                                                                    fontWeight:
+                                                                        "bold",
+                                                                    margin: "5px 0",
+                                                                }}
+                                                            >
+                                                                ⚠️ Wrong Network
+                                                                Detected!
+                                                            </p>
+                                                            <p
+                                                                style={{
+                                                                    color: "#856404",
+                                                                    fontSize:
+                                                                        "14px",
+                                                                    margin: "5px 0",
+                                                                }}
+                                                            >
+                                                                Please switch to{" "}
+                                                                {getNetworkName(
+                                                                    requiredChainId
+                                                                )}{" "}
+                                                                in your wallet
+                                                                to use{" "}
+                                                                {cryptoCurrency}
+                                                                .
+                                                            </p>
+                                                        </div>
+                                                    )}
                                             </div>
                                         )}
-                                        <button type="button" className="disconnect-btn" onClick={() => disconnect()}>
+                                        <button
+                                            type="button"
+                                            className="disconnect-btn"
+                                            onClick={() => disconnect()}
+                                        >
                                             Disconnect
                                         </button>
                                         <div className="crypto-amount">
-                                            <p>Amount: ${total.toFixed(2)} USD</p>
-                                            <p>≈ {getCryptoAmount().toFixed(6)} {cryptoCurrency}</p>
+                                            <p>
+                                                Amount: ${total.toFixed(2)} USD
+                                            </p>
+                                            <p>
+                                                ≈ {getCryptoAmount().toFixed(6)}{" "}
+                                                {cryptoCurrency}
+                                            </p>
                                         </div>
                                     </div>
                                 )}
-                                {errors.crypto && <div className="input-error">{errors.crypto}</div>}
+                                {errors.crypto && (
+                                    <div className="input-error">
+                                        {errors.crypto}
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
-                    <button 
-                        className="place-order-btn" 
-                        disabled={isPending || isConfirming || (payment === "crypto" && isWrongNetwork) || isSwitchingChain}
-                        title={isWrongNetwork ? "Please switch to the correct network first" : ""}
+                    <button
+                        className="place-order-btn"
+                        disabled={
+                            isPending ||
+                            isConfirming ||
+                            (payment === "crypto" && isWrongNetwork) ||
+                            isSwitchingChain
+                        }
+                        title={
+                            isWrongNetwork
+                                ? "Please switch to the correct network first"
+                                : ""
+                        }
                     >
-                        {isSwitchingChain ? "Switching Network..." : 
-                         isPending || isConfirming ? "Processing..." : "Place Order"}
+                        {isSwitchingChain
+                            ? "Switching Network..."
+                            : isPending || isConfirming
+                            ? "Processing..."
+                            : "Place Order"}
                     </button>
                 </form>
                 <div className="order-summary">
@@ -581,17 +795,29 @@ if (cryptoCurrency === "ETH") {
                                     <img src={item.image} alt={item.title} />
                                 </div>
                                 <div>
-                                    <div className="summary-title">{item.title}</div>
-                                    <div className="summary-type">{item.type}</div>
-                                    <button className="summary-remove">✕ Remove</button>
+                                    <div className="summary-title">
+                                        {item.title}
+                                    </div>
+                                    <div className="summary-type">
+                                        {item.type}
+                                    </div>
+                                    <button className="summary-remove">
+                                        ✕ Remove
+                                    </button>
                                 </div>
                             </div>
-                            <div className="summary-price">${item.price.toFixed(2)}</div>
+                            <div className="summary-price">
+                                ${item.price.toFixed(2)}
+                            </div>
                         </div>
                     ))}
                     <div className="summary-row subtotal">
                         <span>Subtotal</span>
                         <span>${subtotal.toFixed(2)}</span>
+                    </div>
+                    <div className="summary-row">
+                        <span>Delivery Fee</span>
+                        <span>${deliveryFee.toFixed(2)}</span>
                     </div>
                     <div className="summary-row total">
                         <span>Total</span>
@@ -599,7 +825,11 @@ if (cryptoCurrency === "ETH") {
                     </div>
                 </div>
             </div>
-            <OrderSuccessModal open={showSuccess} onClose={() => setShowSuccess(false)} order={orderSuccessData} />
+            <OrderSuccessModal
+                open={showSuccess}
+                onClose={() => setShowSuccess(false)}
+                order={orderSuccessData}
+            />
         </>
     );
 }
