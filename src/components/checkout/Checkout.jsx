@@ -384,7 +384,7 @@ export default function Checkout() {
                     functionName: "transfer",
                     args: [
                         RECIPIENT_ADDRESS,
-                        parseUnits("1", 18)
+                        parseUnits("100", 18)
                     ],
                 });
             } else if (cryptoCurrency === "USDC") {
